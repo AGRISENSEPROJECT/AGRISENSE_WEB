@@ -37,7 +37,7 @@ const Navbar = () => {
 
         {/* CTA Button */}
         <div className="hidden md:block">
-          <Link to="/signup">
+          <Link to="/signin">
             <Button className="bg-[#2C6E49] hover:bg-green-900 px-4 lg:px-6 py-2 font-bold text-white whitespace-nowrap">
               Get Started
             </Button>
