@@ -14,6 +14,8 @@ import PopularServices from './landingPage/Popular-Services/PopularServices'
 import SmartFarming from './landingPage/smartFarmingBlog/smartFarming'
 import Footer from './landingPage/Footer'
 import LandingPageChart from './testCharts/LandingPageChart'
+import SignUp from './auth/SignUp'
+import SignIn from './auth/SignIn'
 function App() {
   return (
     <>
@@ -33,6 +35,8 @@ function App() {
 <Route path="/services" element={<PopularServices />} />
 <Route path="/blogs" element={<SmartFarming />} />
 <Route path="/contacts" element={<Footer />} />
+<Route path="/signup" element={<SignUp />} />
+<Route path="/signin" element={<SignIn />} />
 <Route path="testCharts" element={<LandingPageChart/>}/>
 
 

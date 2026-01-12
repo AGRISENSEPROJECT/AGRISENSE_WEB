@@ -46,9 +46,9 @@ const Footer = () => {
             <div>
               <h4 className="font-bold text-base sm:text-lg mb-3 sm:mb-4">Get In Touch</h4>
               <ul className="space-y-1 sm:space-y-2 text-sm sm:text-base">
-                <li>+250 788888888</li>
-                <li>agrisense@gmail.com</li>
-                <li>123 RCA-CORE, RWANDA</li>
+                <li>+250 798 963 223</li>
+                <li>agrisenseproject@gmail.com</li>
+                <li>123 RCA-CORE, Nyabihu, Rwanda</li>
               </ul>
             </div>
 
