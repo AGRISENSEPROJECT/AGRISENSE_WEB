@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { FaStar } from 'react-icons/fa';
 
 const PriceCards = () => {
@@ -69,9 +70,11 @@ const PriceCards = () => {
               <span className="text-gray-500 group-hover:text-white ml-1 text-sm transition font-semibold">/per month</span>
             </div>
 
-            <button className="cursor-pointer bg-[#377552] w-full group-hover:bg-white group-hover:text-[#2C6E49] text-white py-2 px-4 rounded-md transition font-semibold">
-              Check Plan
-            </button>
+            <Link to="/signin" className="block w-full">
+              <button className="cursor-pointer bg-[#377552] w-full group-hover:bg-white group-hover:text-[#2C6E49] text-white py-2 px-4 rounded-md transition font-semibold">
+                Check Plan
+              </button>
+            </Link>
 
             <p className="mt-4 text-sm text-gray-500 group-hover:text-white transition">
               Get 23% Save For Services

@@ -1,8 +1,14 @@
+import { useAuth } from '../lib/AuthContext';
 
 const Navbar = () => {
+  const { user } = useAuth();
+  const displayName = user?.firstName && user?.lastName
+    ? `${user.firstName} ${user.lastName}`
+    : user?.firstName || user?.email?.split('@')[0] || 'User';
+
   return (
     <header className="flex items-center justify-between px-6 py-2 bg-white border-b shadow-sm w-full">
-      
+
       {/* Search Input */}
       <div className="flex-grow max-w-md">
         <input
@@ -28,8 +34,8 @@ const Navbar = () => {
             className="w-10 h-10 rounded-full object-cover"
           />
           <div>
-            <h2 className="text-sm font-semibold">Chance Regine</h2>
-            <p className="text-xs text-gray-500">chanceregine4@gmail.com</p>
+            <h2 className="text-sm font-semibold">{displayName}</h2>
+            <p className="text-xs text-gray-500">{user?.email}</p>
           </div>
           <img src="/assets/arrow-down.svg" alt="Dropdown" className="w-4 h-4" />
         </div>

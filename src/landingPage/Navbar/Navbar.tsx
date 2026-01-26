@@ -64,7 +64,7 @@ const Navbar = () => {
               {item.title}
             </a>
           ))}
-          <Link to="/signup" className="w-full">
+          <Link to="/signin" className="w-full">
             <Button className="bg-[#2C6E49] hover:bg-green-900 px-6 py-2 font-bold text-white w-full">
               Get Started
             </Button>

@@ -1,16 +1,30 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Logo from "/assets/logo.png";
+import { auth } from '../lib/api';
 
 const SignIn: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate login and redirect to OTP verification
-    navigate('/verify-otp');
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await auth.login(email, password);
+      // Store email for OTP verification
+      localStorage.setItem('pending_email', email);
+      navigate('/verify-otp');
+    } catch (err: any) {
+      setError(err.message || 'Invalid email or password');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -23,6 +37,12 @@ const SignIn: React.FC = () => {
           </div>
           <p className="text-gray-500 text-lg">Access your farms by signing in</p>
         </div>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-center font-medium">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-3">
@@ -37,6 +57,7 @@ const SignIn: React.FC = () => {
               className="w-full h-[60px] border-2 border-gray-200 rounded-xl px-5 text-lg outline-none focus:border-[#2C6E49] transition-all bg-gray-50/50"
               placeholder="name@example.com"
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -57,14 +78,23 @@ const SignIn: React.FC = () => {
               className="w-full h-[60px] border-2 border-gray-200 rounded-xl px-5 text-lg outline-none focus:border-[#2C6E49] transition-all bg-gray-50/50"
               placeholder="••••••••"
               required
+              disabled={isLoading}
             />
           </div>
 
           <button
             type="submit"
-            className="w-full h-[64px] bg-[#2C6E49] hover:bg-[#23583a] text-white font-bold text-xl rounded-xl mt-4 transition-all shadow-lg active:scale-[0.98]"
+            disabled={isLoading}
+            className="w-full h-[64px] bg-[#2C6E49] hover:bg-[#23583a] text-white font-bold text-xl rounded-xl mt-4 transition-all shadow-lg active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
           >
-            Sign In
+            {isLoading ? (
+              <>
+                <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                Signing In...
+              </>
+            ) : (
+              'Sign In'
+            )}
           </button>
         </form>
       </div>

@@ -1,5 +1,6 @@
 import SideBar from './SideBar';
 import Navbar from './Navbar';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -16,10 +17,12 @@ interface Card{
 }
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+
   useEffect(() => {
     document.title = 'Dashboard | AGRISENSE';
   }, []);
-  
+
   const data = [
     { name: "Maize plantations", value: 40, color: "#4D8D6E" },
     { name: "Bean plantations", value: 25, color: "#B5D9C3" },
@@ -62,7 +65,7 @@ const Dashboard = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       <SideBar />
-      
+
       <main className="flex-1 flex flex-col overflow-auto bg-white">
         <Navbar />
 

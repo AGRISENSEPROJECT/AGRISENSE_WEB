@@ -17,34 +17,35 @@ import LandingPageChart from './testCharts/LandingPageChart'
 import SignIn from './auth/SignIn'
 import ForgotPassword from './auth/ForgotPassword'
 import VerifyOTP from './auth/VerifyOTP'
+import ProtectedRoute from './components/ProtectedRoute'
+
 function App() {
   return (
     <>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<LandingPage/>}/>
+        <Route path="/about" element={<AboutUs />} />
+        <Route path="/services" element={<PopularServices />} />
+        <Route path="/blogs" element={<SmartFarming />} />
+        <Route path="/contacts" element={<Footer />} />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
+        <Route path="testCharts" element={<LandingPageChart/>}/>
 
-<Routes>
+        {/* Protected Dashboard Routes */}
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard/></ProtectedRoute>}/>
+        <Route path="/crop-care" element={<ProtectedRoute><CropCare/></ProtectedRoute>}/>
+        <Route path="/soil-detects" element={<ProtectedRoute><SoilDetects/></ProtectedRoute>}/>
+        <Route path="/weather" element={<ProtectedRoute><Weather/></ProtectedRoute>}/>
+        <Route path="/analytics" element={<ProtectedRoute><Analytics/></ProtectedRoute>}/>
+        <Route path="/community" element={<ProtectedRoute><Community/></ProtectedRoute>}/>
+        <Route path="/help-and-support" element={<ProtectedRoute><HelpandSupport/></ProtectedRoute>}/>
+        <Route path="/settings" element={<ProtectedRoute><Settings/></ProtectedRoute>}/>
 
-<Route path="/" element={<LandingPage/>}/>
-<Route path="/dashboard" element={<Dashboard/>}/>
-<Route path="/crop-care" element={<CropCare/>}/>
-<Route path="/soil-detects" element={<SoilDetects/>}/>
-<Route path="/weather" element={<Weather/>}/>
-<Route path="/analytics" element={<Analytics/>}/>
-<Route path="/community" element={<Community/>}/>
-<Route path="/help-and-support" element={<HelpandSupport/>}/>
-<Route path="/settings" element={<Settings/>}/>
-<Route path="/about" element={<AboutUs />} />
-<Route path="/services" element={<PopularServices />} />
-<Route path="/blogs" element={<SmartFarming />} />
-<Route path="/contacts" element={<Footer />} />
-<Route path="/signin" element={<SignIn />} />
-<Route path="/forgot-password" element={<ForgotPassword />} />
-<Route path="/verify-otp" element={<VerifyOTP />} />
-<Route path="testCharts" element={<LandingPageChart/>}/>
-
-
-{/* <Route path="/pricing" element={<PricingPlan />} />  */}
-
-</Routes>
+        {/* <Route path="/pricing" element={<PricingPlan />} />  */}
+      </Routes>
     </>
   )
 }
