@@ -1,6 +1,5 @@
 import SideBar from './SideBar';
 import Navbar from './Navbar';
-import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -17,7 +16,6 @@ interface Card{
 }
 
 const Dashboard = () => {
-  const navigate = useNavigate();
 
   useEffect(() => {
     document.title = 'Dashboard | AGRISENSE';

@@ -2,26 +2,25 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Logo from "/assets/logo.png";
 import { auth } from '../lib/api';
+import { useToast } from '../lib/ToastContext';
 
 const SignIn: React.FC = () => {
+  const { showToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
 
     try {
       await auth.login(email, password);
-      // Store email for OTP verification
       localStorage.setItem('pending_email', email);
       navigate('/verify-otp');
     } catch (err: any) {
-      setError(err.message || 'Invalid email or password');
+      showToast(err.message || 'Invalid credentials', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -37,12 +36,6 @@ const SignIn: React.FC = () => {
           </div>
           <p className="text-gray-500 text-lg">Access your farms by signing in</p>
         </div>
-
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-center font-medium">
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-3">
