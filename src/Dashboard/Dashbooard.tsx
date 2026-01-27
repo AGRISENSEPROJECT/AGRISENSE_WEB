@@ -14,6 +14,7 @@ interface Card{
   percentage:string
   icon:string
 }
+// this is a comment for testing
 
 const Dashboard = () => {
 
