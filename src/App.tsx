@@ -43,7 +43,6 @@ function App() {
         <Route path="/community" element={<ProtectedRoute><Community/></ProtectedRoute>}/>
         <Route path="/help-and-support" element={<ProtectedRoute><HelpandSupport/></ProtectedRoute>}/>
         <Route path="/settings" element={<ProtectedRoute><Settings/></ProtectedRoute>}/>
-
         {/* <Route path="/pricing" element={<PricingPlan />} />  */}
       </Routes>
     </>
