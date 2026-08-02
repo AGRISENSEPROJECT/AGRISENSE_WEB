@@ -6,7 +6,13 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowUp, Leaf } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Area, AreaChart } from "recharts"
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { predictionService, type DashboardData } from "@/api";
+import { useAuth } from "@/context/useAuth";
+import { useFarms } from "@/hooks/useFarms";
+import { useWeather } from "@/hooks/useWeather";
+import WeatherIcon from "@/components/WeatherIcon";
 
 interface Card{
   title:string
@@ -16,9 +22,45 @@ interface Card{
 }
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { farms } = useFarms();
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+
+  const firstFarm = farms[0];
+  const weatherPlace = firstFarm
+    ? [firstFarm.district, firstFarm.province, firstFarm.country].filter(Boolean).join(", ")
+    : undefined;
+  const { weather } = useWeather({ place: weatherPlace, useGeolocation: !weatherPlace });
+
   useEffect(() => {
     document.title = 'Dashboard | AGRISENSE';
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    predictionService
+      .getDashboard({ limit: 10 })
+      .then((data) => {
+        if (active) setDashboard(data);
+      })
+      .catch(() => {
+        // Dashboard data is optional; ignore errors here.
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const totalAcreage = farms.reduce((sum, f) => sum + (Number(f.size) || 0), 0);
+  const runsCount = Array.isArray(dashboard?.runs)
+    ? dashboard!.runs!.length
+    : Array.isArray(dashboard?.history)
+      ? dashboard!.history!.length
+      : 0;
+  const suggestionsCount = Array.isArray(dashboard?.suggestions)
+    ? dashboard!.suggestions!.length
+    : 0;
   
   const data = [
     { name: "Maize plantations", value: 40, color: "#4D8D6E" },
@@ -51,11 +93,10 @@ const Dashboard = () => {
   ]
 
   const cards:Card[] = [
-    {title:"Total crops",metrics:"12 Types",percentage:"+2%",icon:'/assets/cardIcon.svg'},
-    {title:"Total crops",metrics:"12 Types",percentage:"+2%",icon:'/assets/cardIcon.svg'},
-    {title:"Total crops",metrics:"12 Types",percentage:"+2%",icon:'/assets/cardIcon.svg'},
-    {title:"Total crops",metrics:"12 Types",percentage:"+2%",icon:'/assets/cardIcon.svg'}
-
+    {title:"Total Farms",metrics:`${farms.length}`,percentage:"active",icon:'/assets/cardIcon.svg'},
+    {title:"Total Acreage",metrics:`${totalAcreage.toFixed(1)} acres`,percentage:"tracked",icon:'/assets/cardIcon.svg'},
+    {title:"Prediction Runs",metrics:`${runsCount}`,percentage:"recorded",icon:'/assets/cardIcon.svg'},
+    {title:"Recommendations",metrics:`${suggestionsCount}`,percentage:"available",icon:'/assets/cardIcon.svg'}
   ]
 
 
@@ -69,17 +110,30 @@ const Dashboard = () => {
     <div className="flex-1 p-6 bg-white">
       <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-[#0B6E4F]">Good Morning !</h1>
-          <p className="text-gray-500 md:test-sm">Welcome back to the your current dashboard</p>
+          <h1 className="text-2xl font-bold text-[#0B6E4F]">
+            Welcome back{user?.username ? `, ${user.username}` : ""} !
+          </h1>
+          <p className="text-gray-500 md:test-sm">Here is an overview of your farms</p>
         </div>
 
         <div className="flex items-end gap-2 md:flex-col lg:flex-row">
-          <div className="bg-white rounded-lg shadow-sm p-3 flex items-center">
-            <span className="text-amber-500 mr-2">★</span>
-            <span className="font-semibold">34°C</span>
-            <span className="text-gray-500 ml-2 md:text-sm">- Sunny with clear skies</span>
+          <div className="bg-white rounded-lg shadow-sm p-3 flex items-center border">
+            {weather ? (
+              <>
+                <WeatherIcon category={weather.current.category} className="h-5 w-5 mr-2 text-[#377552]" />
+                <span className="font-semibold">{Math.round(weather.current.temperature)}°C</span>
+                <span className="text-gray-500 ml-2 md:text-sm">- {weather.current.label}</span>
+              </>
+            ) : (
+              <span className="text-gray-400 text-sm">Loading weather…</span>
+            )}
           </div>
-          <Button className="px-8 font-bold bg-[#377552] hover:bg-[#2D6A4F]">Explore more</Button>
+          <Button
+            onClick={() => navigate("/soil-detects")}
+            className="px-8 font-bold bg-[#377552] hover:bg-[#2D6A4F]"
+          >
+            Explore more
+          </Button>
         </div>
       </div>
 

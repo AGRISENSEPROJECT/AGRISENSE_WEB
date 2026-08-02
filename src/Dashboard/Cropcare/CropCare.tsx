@@ -1,18 +1,64 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import SideBar from "../SideBar"
 import Navbar from "../Navbar"
-import { CropTable } from "./crop-table"
 import { YieldChart } from "./yield-chart"
 import { TemperatureGauge } from "./temperature-gauge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Loader2 } from "lucide-react"
+import { predictionService, type Recommendation } from "@/api"
+import { useFarms } from "@/hooks/useFarms"
+import { useWeather } from "@/hooks/useWeather"
 
 const CropCare = () => {
-    useEffect(() => {
-      document.title = 'CropCare | AGRISENSE';
-    }, []);
-  const [selectedCrop, setSelectedCrop] = useState<string | null>(null)
+  const { farms } = useFarms()
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([])
+  const [loading, setLoading] = useState(true)
 
-  console.log(selectedCrop)
+  useEffect(() => {
+    document.title = "CropCare | AGRISENSE"
+  }, [])
+
+  const firstFarm = farms[0]
+  const weatherPlace = firstFarm
+    ? [firstFarm.district, firstFarm.province, firstFarm.country].filter(Boolean).join(", ")
+    : undefined
+  const { weather } = useWeather({ place: weatherPlace, useGeolocation: !weatherPlace })
+
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    predictionService
+      .getRecommendations({ limit: 50 })
+      .then((res) => {
+        if (!active) return
+        const list = (res.data ||
+          res.items ||
+          (Array.isArray(res) ? res : [])) as Recommendation[]
+        setRecommendations(Array.isArray(list) ? list : [])
+      })
+      .catch(() => active && setRecommendations([]))
+      .finally(() => active && setLoading(false))
+    return () => {
+      active = false
+    }
+  }, [])
+
+  // Distribution of soil types across the user's farms for the chart.
+  const soilDistribution = useMemo(() => {
+    const counts: Record<string, number> = {}
+    farms.forEach((f) => {
+      const key = (f.soilType || "unknown").toString()
+      counts[key] = (counts[key] || 0) + 1
+    })
+    return {
+      labels: Object.keys(counts).map((k) => k.charAt(0).toUpperCase() + k.slice(1)),
+      values: Object.values(counts),
+    }
+  }, [farms])
+
+  const gaugeTemp = weather ? Math.round(weather.current.temperature) : 0
+
   return (
     <div className="flex h-screen bg-gray-100">
       <SideBar />
@@ -27,23 +73,81 @@ const CropCare = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <CropTable onSelectCrop={setSelectedCrop} />
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Crop Care Recommendations</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <div className="flex justify-center py-10">
+                      <Loader2 className="h-6 w-6 animate-spin text-[#2C6E49]" />
+                    </div>
+                  ) : recommendations.length === 0 ? (
+                    <p className="text-sm text-gray-500 py-6">
+                      No recommendations yet. Run a soil analysis in{" "}
+                      <span className="font-medium">Soil Detects</span> to generate crop care advice.
+                    </p>
+                  ) : (
+                    <div className="rounded-md border overflow-hidden">
+                      <Table>
+                        <TableHeader className="bg-[#377552]">
+                          <TableRow>
+                            <TableHead className="text-white font-medium">Type</TableHead>
+                            <TableHead className="text-white font-medium">Recommendation</TableHead>
+                            <TableHead className="text-white font-medium">Date</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {recommendations.map((rec, index) => (
+                            <TableRow
+                              key={rec.id || index}
+                              className={index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}
+                            >
+                              <TableCell className="font-medium capitalize text-[#377552]">
+                                {rec.type || "general"}
+                              </TableCell>
+                              <TableCell>
+                                {rec.title || rec.description || rec.content || "—"}
+                              </TableCell>
+                              <TableCell className="text-sm text-gray-500">
+                                {rec.createdAt
+                                  ? new Date(rec.createdAt).toLocaleDateString()
+                                  : "—"}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
+
             <div className="space-y-6">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Growth Yields</CardTitle>
+                  <CardTitle className="text-lg">Soil Types Across Farms</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <YieldChart />
+                  <YieldChart
+                    labels={soilDistribution.labels}
+                    values={soilDistribution.values}
+                    seriesLabel="Farms"
+                  />
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Temperature</CardTitle>
+                  <CardTitle className="text-lg">Field Temperature</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <TemperatureGauge value={28} />
+                  <TemperatureGauge value={gaugeTemp} />
+                  <p className="text-center text-xs text-gray-400 mt-2">
+                    {weather
+                      ? `Live from ${weather.location.name}`
+                      : "Loading live temperature…"}
+                  </p>
                 </CardContent>
               </Card>
             </div>

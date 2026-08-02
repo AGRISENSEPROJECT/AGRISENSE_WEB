@@ -9,6 +9,7 @@ import Counter from './Counter/Counter'
 import SmartFarming from './smartFarmingBlog/smartFarming';
 import WeatherSection from './WeatherSection'
 import TestimonialCarousel from './Testimonies'
+import Waitlist from './Waitlist'
 import Footer from './Footer'
 import { useEffect } from 'react'
 
@@ -34,6 +35,7 @@ const LandingPage = () => {
       </div>
       <WeatherSection />
       <TestimonialCarousel />
+      <Waitlist />
       <div id="contact">
         <Footer />
       </div>

@@ -1,71 +1,164 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import Logo from "/assets/logo.png";
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Mail, Lock, User } from 'lucide-react';
+import { ApiError, authService } from "@/api";
+import {
+  sanitizeSingleLine,
+  validateEmail,
+  validatePassword,
+  validateUsername,
+} from "@/lib/validation";
+import AuthLayout from "./AuthLayout";
+import { Alert, PasswordField, SubmitButton, TextField } from "./form-fields";
+
+interface FieldErrors {
+  username?: string;
+  email?: string;
+  password?: string;
+  confirm?: string;
+  terms?: string;
+}
 
 const SignUp: React.FC = () => {
+  const navigate = useNavigate();
+
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [terms, setTerms] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [formError, setFormError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    document.title = "Sign Up | AGRISENSE";
+  }, []);
+
+  const validate = () => {
+    const next: FieldErrors = {};
+    const u = validateUsername(username);
+    if (!u.valid) next.username = u.message;
+    const em = validateEmail(email);
+    if (!em.valid) next.email = em.message;
+    const pw = validatePassword(password);
+    if (!pw.valid) next.password = pw.message;
+    if (confirm !== password) next.confirm = "Passwords do not match.";
+    if (!terms) next.terms = "Please accept the terms to continue.";
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError(null);
+    if (!validate()) return;
+
+    setLoading(true);
+    try {
+      await authService.register({
+        email: email.trim(),
+        username: sanitizeSingleLine(username),
+        password,
+      });
+      navigate("/verify-otp", { state: { email: email.trim() } });
+    } catch (err) {
+      setFormError(
+        err instanceof ApiError ? err.message : "Something went wrong. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#f1f7f4] flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.05)] p-8 md:p-12">
-        <div className="flex flex-col items-center mb-10">
-          <div className="flex items-center gap-3 mb-2">
-            <img src={Logo} alt="AgriSense Logo" className="h-8 w-8 object-contain" />
-            <h1 className="text-[22px] font-bold text-gray-900 tracking-tight">AgriSense - Sign Up</h1>
-          </div>
-          <p className="text-gray-500 text-[15px]">Create an account to manage your farms</p>
+    <AuthLayout
+      title="Create your account"
+      subtitle="Start managing your farms in minutes"
+      footer={
+        <p className="text-sm text-gray-600">
+          Already have an account?{" "}
+          <Link to="/signin" className="text-[#2C6E49] font-semibold hover:underline">
+            Sign in
+          </Link>
+        </p>
+      }
+    >
+      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+        {formError && <Alert type="error">{formError}</Alert>}
+
+        <TextField
+          id="username"
+          label="Username"
+          value={username}
+          onChange={setUsername}
+          placeholder="johndoe"
+          icon={<User className="h-5 w-5" />}
+          error={errors.username}
+          autoComplete="username"
+          required
+        />
+
+        <TextField
+          id="email"
+          label="Email"
+          type="email"
+          value={email}
+          onChange={setEmail}
+          placeholder="you@example.com"
+          icon={<Mail className="h-5 w-5" />}
+          error={errors.email}
+          autoComplete="email"
+          required
+        />
+
+        <PasswordField
+          id="password"
+          label="Password"
+          value={password}
+          onChange={setPassword}
+          placeholder="Create a strong password"
+          icon={<Lock className="h-5 w-5" />}
+          error={errors.password}
+          autoComplete="new-password"
+          showStrength
+          required
+        />
+
+        <PasswordField
+          id="confirm"
+          label="Confirm password"
+          value={confirm}
+          onChange={setConfirm}
+          placeholder="Re-enter your password"
+          icon={<Lock className="h-5 w-5" />}
+          error={errors.confirm}
+          autoComplete="new-password"
+          required
+        />
+
+        <div className="space-y-1">
+          <label className="flex items-start gap-2 text-sm text-gray-600 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={terms}
+              onChange={(e) => setTerms(e.target.checked)}
+              className="h-4 w-4 mt-0.5 rounded border-gray-300 text-[#2C6E49] focus:ring-[#2C6E49]"
+            />
+            <span>
+              I agree to the{" "}
+              <span className="text-[#2C6E49] font-medium">Terms of Service</span> and{" "}
+              <span className="text-[#2C6E49] font-medium">Privacy Policy</span>.
+            </span>
+          </label>
+          {errors.terms && <p className="text-xs text-red-600">{errors.terms}</p>}
         </div>
 
-        <form className="space-y-7">
-          <div className="space-y-2.5">
-            <label className="text-[17px] font-bold text-gray-800 block" htmlFor="fullName">
-              Full Name
-            </label>
-            <input
-              id="fullName"
-              type="text"
-              className="w-full h-[52px] border border-gray-300 rounded-md px-4 outline-none focus:border-[#2C6E49] transition-all"
-              required
-            />
-          </div>
-
-          <div className="space-y-2.5">
-            <label className="text-[17px] font-bold text-gray-800 block" htmlFor="email">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              className="w-full h-[52px] border border-gray-300 rounded-md px-4 outline-none focus:border-[#2C6E49] transition-all"
-              required
-            />
-          </div>
-
-          <div className="space-y-2.5">
-            <label className="text-[17px] font-bold text-gray-800 block" htmlFor="password">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              className="w-full h-[52px] border border-gray-300 rounded-md px-4 outline-none focus:border-[#2C6E49] transition-all"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full h-[56px] bg-[#2C6E49] hover:bg-[#23583a] text-white font-bold text-xl rounded-md mt-6 transition-all shadow-sm"
-          >
-            Sign Up
-          </button>
-
-          <div className="text-center mt-6">
-            <p className="text-sm text-gray-600">
-              Already have an account ? <Link to="/signin" className="text-[#2C6E49] font-bold hover:underline">Sign In</Link>
-            </p>
-          </div>
-        </form>
-      </div>
-    </div>
+        <SubmitButton loading={loading}>
+          {loading ? "Creating account…" : "Create Account"}
+        </SubmitButton>
+      </form>
+    </AuthLayout>
   );
 };
 

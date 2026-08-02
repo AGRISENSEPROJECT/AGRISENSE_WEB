@@ -2,7 +2,7 @@
 
 Push to `main` (or run **Actions → Deploy Web to VPS → Run workflow**) builds the Vite app and rsyncs `dist/` to:
 
-`/opt/agrisense/deploy/web/` on `102.202.208.198`
+`/opt/agrisense/deploy/web/` on your VPS host (configured via the `VPS_HOST` secret).
 
 Nginx already serves that folder at `/` and proxies `/api` to Nest. No container rebuild needed for frontend-only changes.
 
@@ -12,9 +12,9 @@ Repo → **Settings → Secrets and variables → Actions** → add:
 
 | Secret | Value |
 |---|---|
-| `VPS_HOST` | `102.202.208.198` |
-| `VPS_PORT` | `222` |
-| `VPS_USER` | `root` |
+| `VPS_HOST` | Your server's IP or hostname |
+| `VPS_PORT` | SSH port (e.g. `22`) |
+| `VPS_USER` | Deploy user (e.g. `deploy`) |
 | `VPS_SSH_KEY` | Full private key for the deploy user (including `-----BEGIN ... PRIVATE KEY-----`) |
 
 ## Deploy key
@@ -26,5 +26,6 @@ A dedicated key `agrisense-web-deploy` should exist on the VPS in `/root/.ssh/au
 ```bash
 npm ci
 npx vite build
-rsync -az --delete -e 'ssh -p 222' dist/ root@102.202.208.198:/opt/agrisense/deploy/web/
+# Replace the placeholders with your own values (kept in GitHub secrets, not in the repo).
+rsync -az --delete -e "ssh -p ${VPS_PORT}" dist/ "${VPS_USER}@${VPS_HOST}:/opt/agrisense/deploy/web/"
 ```

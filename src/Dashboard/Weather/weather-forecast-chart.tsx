@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from "react"
 import { Line } from "react-chartjs-2"
 import {
   Chart as ChartJS,
@@ -13,114 +12,97 @@ import {
   type ChartData,
   type ChartOptions,
 } from "chart.js"
-
-
+import type { DailyWeather } from "@/lib/weather"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler)
 
-export function WeatherForecastChart() {
-  const chartRef = useRef<ChartJS<"line">>(null)
-  const [chartData, setChartData] = useState<ChartData<"line">>({
-    datasets: [],
-  })
-  const [chartOptions, setChartOptions] = useState<ChartOptions<"line">>({})
+interface WeatherForecastChartProps {
+  daily: DailyWeather[]
+}
 
-  useEffect(() => {
-    const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN"]
+export function WeatherForecastChart({ daily }: WeatherForecastChartProps) {
+  const labels = daily.map((d) =>
+    new Date(d.date).toLocaleDateString("en-US", { weekday: "short" }),
+  )
 
-    setChartData({
-      labels: months,
-      datasets: [
-        {
-          label: "2024",
-          data: [6.2, 5.1, 4.8, 7.8, 6.5, 5.9],
-          borderColor: "#16a34a",
-          backgroundColor: (context) => {
-            const ctx = context.chart.ctx
-            const gradient = ctx.createLinearGradient(0, 0, 0, 300)
-            gradient.addColorStop(0, "rgba(22, 163, 74, 0.5)")
-            gradient.addColorStop(1, "rgba(22, 163, 74, 0)")
-            return gradient
-          },
-          tension: 0.4,
-          borderWidth: 2,
-          fill: true,
+  const data: ChartData<"line"> = {
+    labels,
+    datasets: [
+      {
+        label: "Max °C",
+        data: daily.map((d) => d.tempMax),
+        borderColor: "#16a34a",
+        backgroundColor: (context) => {
+          const ctx = context.chart.ctx
+          const gradient = ctx.createLinearGradient(0, 0, 0, 300)
+          gradient.addColorStop(0, "rgba(22, 163, 74, 0.5)")
+          gradient.addColorStop(1, "rgba(22, 163, 74, 0)")
+          return gradient
         },
-        {
-          label: "2023",
-          data: [5.8, 6.5, 7.2, 5.0, 6.8, 5.5],
-          borderColor: "#94a3b8",
-          backgroundColor: (context) => {
-            const ctx = context.chart.ctx
-            const gradient = ctx.createLinearGradient(0, 0, 0, 300)
-            gradient.addColorStop(0, "rgba(148, 163, 184, 0.3)")
-            gradient.addColorStop(1, "rgba(148, 163, 184, 0)")
-            return gradient
-          },
-          tension: 0.4,
-          borderWidth: 2,
-          fill: true,
+        tension: 0.4,
+        borderWidth: 2,
+        fill: true,
+      },
+      {
+        label: "Min °C",
+        data: daily.map((d) => d.tempMin),
+        borderColor: "#94a3b8",
+        backgroundColor: (context) => {
+          const ctx = context.chart.ctx
+          const gradient = ctx.createLinearGradient(0, 0, 0, 300)
+          gradient.addColorStop(0, "rgba(148, 163, 184, 0.3)")
+          gradient.addColorStop(1, "rgba(148, 163, 184, 0)")
+          return gradient
         },
-      ],
-    })
+        tension: 0.4,
+        borderWidth: 2,
+        fill: true,
+      },
+    ],
+  }
 
-    setChartOptions({
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: "top",
-          align: "end",
-          labels: {
-            usePointStyle: true,
-            boxWidth: 8,
-          },
-        },
-        tooltip: {
-          mode: "index",
-          intersect: false,
-          callbacks: {
-            label: (context) => `${context.dataset.label}: ${context.parsed.y} mm`,
-          },
-        },
+  const options: ChartOptions<"line"> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top",
+        align: "end",
+        labels: { usePointStyle: true, boxWidth: 8 },
       },
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 10,
-          grid: {
-            display: false,
-          },
-          ticks: {
-            maxTicksLimit: 6,
-          },
-        },
-        x: {
-          grid: {
-            display: false,
-          },
-        },
-      },
-      elements: {
-        point: {
-          radius: 0,
-          hoverRadius: 4,
-        },
-        line: {
-          tension: 0.4,
-        },
-      },
-      interaction: {
-        mode: "nearest",
-        axis: "x",
+      tooltip: {
+        mode: "index",
         intersect: false,
+        callbacks: {
+          label: (context) => `${context.dataset.label}: ${context.parsed.y}°C`,
+        },
       },
-    })
-  }, [])
+    },
+    scales: {
+      y: {
+        grid: { display: false },
+        ticks: { maxTicksLimit: 6, callback: (v) => `${v}°` },
+      },
+      x: { grid: { display: false } },
+    },
+    elements: {
+      point: { radius: 0, hoverRadius: 4 },
+      line: { tension: 0.4 },
+    },
+    interaction: { mode: "nearest", axis: "x", intersect: false },
+  }
+
+  if (daily.length === 0) {
+    return (
+      <div className="h-[300px] w-full flex items-center justify-center text-sm text-gray-400">
+        No forecast data available.
+      </div>
+    )
+  }
 
   return (
     <div className="h-[300px] w-full">
-      <Line ref={chartRef} options={chartOptions} data={chartData} />
+      <Line options={options} data={data} />
     </div>
   )
 }

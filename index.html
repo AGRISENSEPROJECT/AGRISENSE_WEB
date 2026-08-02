@@ -6,9 +6,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <title>AGRISENSE - Landing Page</title>
+    <style>
+      /* Instant splash shown before the JS bundle loads. React replaces
+         the #root contents when it mounts, removing this automatically. */
+      #app-splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f0f5f2;
+        font-family: 'Poppins', system-ui, sans-serif;
+        z-index: 9999;
+      }
+      #app-splash .splash-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+      #app-splash .splash-ring {
+        position: relative;
+        height: 64px;
+        width: 64px;
+      }
+      #app-splash .splash-ring .ring-bg {
+        position: absolute;
+        inset: 0;
+        border-radius: 9999px;
+        border: 4px solid #d7ece0;
+      }
+      #app-splash .splash-ring .ring-fg {
+        position: absolute;
+        inset: 0;
+        border-radius: 9999px;
+        border: 4px solid #2c6e49;
+        border-top-color: transparent;
+        animation: splash-spin 0.8s linear infinite;
+      }
+      #app-splash .splash-ring img {
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        height: 32px;
+        width: 32px;
+        object-fit: contain;
+      }
+      #app-splash .splash-title {
+        font-weight: 700;
+        font-size: 18px;
+        letter-spacing: -0.01em;
+      }
+      #app-splash .splash-title .agri { color: #16a34a; }
+      #app-splash .splash-title .sense { color: #1f2937; }
+      #app-splash .splash-msg {
+        font-size: 13px;
+        color: #6b7280;
+        margin-top: 4px;
+        animation: splash-pulse 1.4s ease-in-out infinite;
+      }
+      @keyframes splash-spin { to { transform: rotate(360deg); } }
+      @keyframes splash-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    </style>
   </head>
   <body class="">
-    <div id="root"></div>
+    <div id="root">
+      <div id="app-splash">
+        <div class="splash-inner">
+          <div class="splash-ring">
+            <div class="ring-bg"></div>
+            <div class="ring-fg"></div>
+            <img src="/assets/logo.png" alt="AgriSense" />
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;">
+            <p class="splash-title"><span class="agri">AGRI</span><span class="sense">SENSE</span></p>
+            <p class="splash-msg">Loading…</p>
+          </div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

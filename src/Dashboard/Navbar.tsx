@@ -1,8 +1,15 @@
+import { useAuth } from "@/context/useAuth";
 
 const Navbar = () => {
+  const { user } = useAuth();
+
+  const displayName = user?.username || "Guest";
+  const displayEmail = user?.email || "";
+  const avatar = user?.profileImage || "/assets/Dashboardicons/profile.png";
+
   return (
     <header className="flex items-center justify-between px-6 py-2 bg-white border-b shadow-sm w-full">
-      
+
       {/* Search Input */}
       <div className="flex-grow max-w-md">
         <input
@@ -23,13 +30,13 @@ const Navbar = () => {
         {/* Profile */}
         <div className="flex items-center gap-3 border-l pl-4">
           <img
-            src="/assets/Dashboardicons/profile.png "
+            src={avatar}
             alt="User"
-            className="w-10 h-10 rounded-full object-cover"
+            className="w-10 h-10 rounded-full object-cover bg-gray-100"
           />
           <div>
-            <h2 className="text-sm font-semibold">Chance Regine</h2>
-            <p className="text-xs text-gray-500">chanceregine4@gmail.com</p>
+            <h2 className="text-sm font-semibold">{displayName}</h2>
+            <p className="text-xs text-gray-500">{displayEmail}</p>
           </div>
           <img src="/assets/arrow-down.svg" alt="Dropdown" className="w-4 h-4" />
         </div>

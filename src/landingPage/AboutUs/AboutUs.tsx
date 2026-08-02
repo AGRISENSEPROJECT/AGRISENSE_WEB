@@ -1,4 +1,5 @@
 import type { FC } from "react"
+import { ArrowRight } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import AboutUsImage from "/assets/about us.png"
 
@@ -51,7 +52,13 @@ const AboutUs: FC = () => {
             AgriSense leverages AI to provide real-time crop recommendations, soil analysis, and market insights,
             solving farming challenges with data-driven solutions.
           </p>
-          <span className="text-[#377552] text-lg cursor-pointer">more ➝</span>
+          <a
+            href="#services"
+            className="group inline-flex items-center gap-1.5 text-[#377552] text-lg font-semibold hover:gap-2.5 transition-all"
+          >
+            Explore our services
+            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+          </a>
         </div>
       </div>
     </section>

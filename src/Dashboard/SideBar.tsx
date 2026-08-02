@@ -1,5 +1,5 @@
-
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/useAuth';
 
 interface SidebarLinks {
   title: string;
@@ -7,8 +7,10 @@ interface SidebarLinks {
   path: string;
 }
 
-
 const SideBar = () => {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
   const Links: SidebarLinks[] = [
     { title: "Dashboard", icon: "/assets/Dashboardicons/Dashboard.svg", path: "/dashboard" },
     { title: "Crop Care", icon: "/assets/Dashboardicons/cropcare.svg", path: "/crop-care" },
@@ -18,8 +20,12 @@ const SideBar = () => {
     { title: "Community", icon: "/assets/Dashboardicons/community.svg", path: "/community" },
     { title: "Help & Support", icon: "/assets/Dashboardicons/help.svg", path: "/help-and-support" },
     { title: "Settings", icon: "/assets/Dashboardicons/settings.svg", path: "/settings" },
-    { title: "Logout", icon: "/assets/Dashboardicons/Logout.svg", path: "/" }
   ];
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/signin", { replace: true });
+  };
 
   return (
     <aside className="w-64 h-screen bg-white border-r shadow-sm p-6 flex flex-col">
@@ -32,24 +38,33 @@ const SideBar = () => {
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex flex-col gap-4">
-  {Links.map((link, index) => (
-    <NavLink
-      to={link.path}
-      key={index}
-      className={({ isActive }) =>
-        `flex items-center gap-3 px-3 py-2 rounded-md transition ${
-          isActive
-            ? "bg-green-100 text-[#377552] font-semibold"
-            : "text-gray-700 hover:bg-green-100"
-        }`
-      }
-    >
-      <img className="w-5 h-5" src={link.icon} alt={`${link.title} icon`} />
-      <span className="text-sm">{link.title}</span>
-    </NavLink>
-  ))}
-</nav>
+      <nav className="flex flex-col gap-4 flex-1">
+        {Links.map((link, index) => (
+          <NavLink
+            to={link.path}
+            key={index}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2 rounded-md transition ${
+                isActive
+                  ? "bg-green-100 text-[#377552] font-semibold"
+                  : "text-gray-700 hover:bg-green-100"
+              }`
+            }
+          >
+            <img className="w-5 h-5" src={link.icon} alt={`${link.title} icon`} />
+            <span className="text-sm">{link.title}</span>
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* Logout */}
+      <button
+        onClick={handleLogout}
+        className="flex items-center gap-3 px-3 py-2 rounded-md transition text-gray-700 hover:bg-red-50 hover:text-red-600 mt-4"
+      >
+        <img className="w-5 h-5" src="/assets/Dashboardicons/Logout.svg" alt="Logout icon" />
+        <span className="text-sm">Logout</span>
+      </button>
     </aside>
   );
 };
