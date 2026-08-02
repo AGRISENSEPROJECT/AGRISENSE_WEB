@@ -1,8 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Logo from "/assets/logo.png";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
 const SignUp: React.FC = () => {
   return (
