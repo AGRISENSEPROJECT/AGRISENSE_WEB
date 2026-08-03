@@ -1,6 +1,5 @@
+import DashboardLayout from "./DashboardLayout"
 import { useCallback, useEffect, useState } from 'react';
-import Navbar from './Navbar';
-import SideBar from './SideBar';
 import { Loader2, Trash2, Plus } from 'lucide-react';
 import {
   ApiError,
@@ -49,19 +48,16 @@ const Settings = () => {
   }, []);
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <SideBar />
-      <main className="flex-1 flex flex-col overflow-auto bg-white">
-        <Navbar />
-        <div className="p-6 max-w-4xl w-full mx-auto space-y-6">
+    <DashboardLayout>
+        <div className="p-4 sm:p-6 max-w-4xl w-full mx-auto space-y-6">
           <h1 className="text-2xl font-bold text-[#0B6E4F]">Settings</h1>
 
-          <div className="flex gap-2 border-b">
+          <div className="flex gap-2 border-b overflow-x-auto">
             {(['profile', 'security', 'farms'] as TabId[]).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`px-4 py-2 text-sm font-semibold capitalize border-b-2 -mb-px transition-colors ${
+                className={`shrink-0 px-4 py-2 text-sm font-semibold capitalize border-b-2 -mb-px transition-colors ${
                   tab === t
                     ? 'border-[#2C6E49] text-[#2C6E49]'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -78,8 +74,7 @@ const Settings = () => {
           {tab === 'security' && <SecuritySection />}
           {tab === 'farms' && <FarmsSection />}
         </div>
-      </main>
-    </div>
+      </DashboardLayout>
   );
 };
 

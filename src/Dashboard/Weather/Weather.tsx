@@ -1,6 +1,5 @@
+import DashboardLayout from "../DashboardLayout"
 import { useEffect, useMemo, useState } from "react"
-import SideBar from "../SideBar"
-import Navbar from "../Navbar"
 import { WeatherForecastChart } from "./weather-forecast-chart"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Droplets, Gauge, MapPin, Thermometer, Wind, Loader2, AlertTriangle, Info, CheckCircle2 } from "lucide-react"
@@ -60,13 +59,9 @@ const Weather = () => {
     : "Locating…"
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <SideBar />
+    <DashboardLayout>
 
-      <main className="flex-1 flex flex-col overflow-auto bg-white">
-        <Navbar />
-
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h1 className="text-2xl font-semibold text-gray-800">Weather</h1>
             {farms.length > 0 && (
@@ -135,9 +130,9 @@ const Weather = () => {
               </div>
             </div>
 
-            <div className="absolute top-6 right-6 bg-white/90 text-gray-800 px-4 py-1.5 rounded-md font-medium flex items-center gap-1.5">
-              <MapPin className="h-4 w-4 text-[#2C6E49]" />
-              {locationName}
+            <div className="absolute top-4 right-4 sm:top-6 sm:right-6 max-w-[calc(100%-2rem)] bg-white/90 text-gray-800 px-3 py-1.5 rounded-md font-medium flex items-center gap-1.5 text-sm truncate">
+              <MapPin className="h-4 w-4 text-[#2C6E49] shrink-0" />
+              <span className="truncate">{locationName}</span>
             </div>
           </div>
 
@@ -203,8 +198,7 @@ const Weather = () => {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+    </DashboardLayout>
   )
 }
 

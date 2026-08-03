@@ -1,6 +1,5 @@
+import DashboardLayout from "./DashboardLayout"
 import { useEffect, useMemo, useState } from 'react';
-import SideBar from './SideBar';
-import Navbar from './Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   ChevronDown,
@@ -78,13 +77,9 @@ const HelpandSupport = () => {
   }, [message, user]);
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <SideBar />
+    <DashboardLayout>
 
-      <main className="flex-1 flex flex-col overflow-auto bg-white">
-        <Navbar />
-
-        <div className="p-6 max-w-5xl w-full mx-auto space-y-6">
+        <div className="p-4 sm:p-6 max-w-5xl w-full mx-auto space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-[#0B6E4F]">Help &amp; Support</h1>
             <p className="text-gray-500 text-sm mt-1">
@@ -214,8 +209,7 @@ const HelpandSupport = () => {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </DashboardLayout>
   );
 };
 
