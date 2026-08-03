@@ -30,7 +30,7 @@ const TermsOfService = () => {
         <p>
           By creating an account, accessing, or using AgriSense (the "Service"), you agree to be
           bound by these Terms of Service and our{" "}
-          <Link to="/privacy" className="font-medium text-[#2C6E49] hover:underline">
+          <Link to="/legal/privacy" className="font-medium text-[#2C6E49] hover:underline">
             Privacy Policy
           </Link>
           . If you do not agree, you may not use the Service.

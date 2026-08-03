@@ -61,7 +61,7 @@ const SignUp: React.FC = () => {
         username: sanitizeSingleLine(username),
         password,
       });
-      navigate("/verify-otp", { state: { email: email.trim() } });
+      navigate("/auth/verify-otp", { state: { email: email.trim() } });
     } catch (err) {
       setFormError(
         err instanceof ApiError ? err.message : "Something went wrong. Please try again.",
@@ -78,7 +78,7 @@ const SignUp: React.FC = () => {
       footer={
         <p className="text-sm text-gray-600">
           Already have an account?{" "}
-          <Link to="/signin" className="text-[#2C6E49] font-semibold hover:underline">
+          <Link to="/auth/login" className="text-[#2C6E49] font-semibold hover:underline">
             Sign in
           </Link>
         </p>
@@ -148,7 +148,7 @@ const SignUp: React.FC = () => {
             <span>
               I agree to the{" "}
               <Link
-                to="/terms"
+                to="/legal/terms"
                 target="_blank"
                 className="text-[#2C6E49] font-medium hover:underline"
               >
@@ -156,7 +156,7 @@ const SignUp: React.FC = () => {
               </Link>{" "}
               and{" "}
               <Link
-                to="/privacy"
+                to="/legal/privacy"
                 target="_blank"
                 className="text-[#2C6E49] font-medium hover:underline"
               >

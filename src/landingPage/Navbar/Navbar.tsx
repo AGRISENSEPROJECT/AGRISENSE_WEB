@@ -43,7 +43,7 @@ const Navbar = () => {
         <div className="hidden md:flex items-center gap-2">
           {!isAuthenticated && (
             <Link
-              to="/signin"
+              to="/auth/login"
               className="rounded-lg px-3 py-2 text-sm font-semibold text-gray-600 transition-colors hover:text-[#2C6E49] whitespace-nowrap"
             >
               Sign in
@@ -83,7 +83,7 @@ const Navbar = () => {
           <div className="mt-2 flex flex-col gap-2 border-t border-gray-100 pt-3">
             {!isAuthenticated && (
               <Link
-                to="/signin"
+                to="/auth/login"
                 onClick={() => setMenuOpen(false)}
                 className="rounded-lg px-3 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-[#2C6E49]"
               >

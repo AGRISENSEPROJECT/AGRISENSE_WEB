@@ -129,7 +129,7 @@ const Dashboard = () => {
             )}
           </div>
           <Button
-            onClick={() => navigate("/soil-detects")}
+            onClick={() => navigate("/app/soil")}
             className="px-8 font-bold bg-[#377552] hover:bg-[#2D6A4F]"
           >
             Explore more

@@ -29,7 +29,7 @@ const SignIn: React.FC = () => {
     document.title = "Sign In | AGRISENSE";
   }, []);
 
-  const from = state?.from?.pathname || "/dashboard";
+  const from = state?.from?.pathname || "/app";
 
   const validate = () => {
     const next: { email?: string; password?: string } = {};
@@ -57,7 +57,7 @@ const SignIn: React.FC = () => {
           } catch {
             /* ignore */
           }
-          navigate("/verify-otp", { state: { email: email.trim() } });
+          navigate("/auth/verify-otp", { state: { email: email.trim() } });
           return;
         }
         setFormError(err.message);
@@ -76,7 +76,7 @@ const SignIn: React.FC = () => {
       footer={
         <p className="text-sm text-gray-600">
           Don&apos;t have an account?{" "}
-          <Link to="/signup" className="text-[#2C6E49] font-semibold hover:underline">
+          <Link to="/auth/register" className="text-[#2C6E49] font-semibold hover:underline">
             Create one
           </Link>
         </p>
@@ -120,7 +120,7 @@ const SignIn: React.FC = () => {
             />
             Remember me
           </label>
-          <Link to="/forgot-password" className="text-sm text-[#2C6E49] font-medium hover:underline">
+          <Link to="/auth/forgot-password" className="text-sm text-[#2C6E49] font-medium hover:underline">
             Forgot password?
           </Link>
         </div>

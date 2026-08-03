@@ -12,19 +12,19 @@ const SideBar = () => {
   const { logout } = useAuth();
 
   const Links: SidebarLinks[] = [
-    { title: "Dashboard", icon: "/assets/Dashboardicons/Dashboard.svg", path: "/dashboard" },
-    { title: "Crop Care", icon: "/assets/Dashboardicons/cropcare.svg", path: "/crop-care" },
-    { title: "Soil Detects", icon: "/assets/Dashboardicons/soilDetects.svg", path: "/soil-detects" },
-    { title: "Weather", icon: "/assets/Dashboardicons/weather.svg", path: "/weather" },
-    { title: "Analytics", icon: "/assets/Dashboardicons/analysis.svg", path: "/analytics" },
-    { title: "Community", icon: "/assets/Dashboardicons/community.svg", path: "/community" },
-    { title: "Help & Support", icon: "/assets/Dashboardicons/help.svg", path: "/help-and-support" },
-    { title: "Settings", icon: "/assets/Dashboardicons/settings.svg", path: "/settings" },
+    { title: "Dashboard", icon: "/assets/Dashboardicons/Dashboard.svg", path: "/app" },
+    { title: "Crop Care", icon: "/assets/Dashboardicons/cropcare.svg", path: "/app/crop-care" },
+    { title: "Soil Detects", icon: "/assets/Dashboardicons/soilDetects.svg", path: "/app/soil" },
+    { title: "Weather", icon: "/assets/Dashboardicons/weather.svg", path: "/app/weather" },
+    { title: "Analytics", icon: "/assets/Dashboardicons/analysis.svg", path: "/app/analytics" },
+    { title: "Community", icon: "/assets/Dashboardicons/community.svg", path: "/app/community" },
+    { title: "Help & Support", icon: "/assets/Dashboardicons/help.svg", path: "/app/help" },
+    { title: "Settings", icon: "/assets/Dashboardicons/settings.svg", path: "/app/settings" },
   ];
 
   const handleLogout = async () => {
     await logout();
-    navigate("/signin", { replace: true });
+    navigate("/auth/login", { replace: true });
   };
 
   return (

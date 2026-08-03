@@ -85,7 +85,7 @@ const VerifyOtp: React.FC = () => {
     try {
       await authService.verifyOtp({ email: email.trim(), otp });
       setInfo("Email verified successfully! Redirecting to sign in…");
-      setTimeout(() => navigate("/signin", { state: { email: email.trim() } }), 1200);
+      setTimeout(() => navigate("/auth/login", { state: { email: email.trim() } }), 1200);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Verification failed.");
     } finally {
@@ -117,7 +117,7 @@ const VerifyOtp: React.FC = () => {
       footer={
         <p className="text-sm text-gray-600">
           Back to{" "}
-          <Link to="/signin" className="text-[#2C6E49] font-semibold hover:underline">
+          <Link to="/auth/login" className="text-[#2C6E49] font-semibold hover:underline">
             Sign in
           </Link>
         </p>

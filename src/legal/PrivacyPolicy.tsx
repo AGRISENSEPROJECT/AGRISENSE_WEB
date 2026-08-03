@@ -30,7 +30,7 @@ const PrivacyPolicy = () => {
           AgriSense ("we", "us", "our") is committed to protecting your privacy. This policy applies
           to information we process when you use our website, dashboards, and services. By using
           AgriSense, you agree to the practices described here and in our{" "}
-          <Link to="/terms" className="font-medium text-[#2C6E49] hover:underline">
+          <Link to="/legal/terms" className="font-medium text-[#2C6E49] hover:underline">
             Terms of Service
           </Link>
           .
