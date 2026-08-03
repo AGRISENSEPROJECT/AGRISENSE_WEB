@@ -9,7 +9,7 @@ import Analytics from './Dashboard/Analytics'
 import Community from './Dashboard/Community'
 import HelpandSupport from './Dashboard/HelpandSupport'
 import Settings from './Dashboard/Settings'
-import AboutUs from './landingPage/AboutUs/AboutUs'
+import AboutPage from './landingPage/AboutUs/AboutPage'
 import PopularServices from './landingPage/Popular-Services/PopularServices'
 import SmartFarming from './landingPage/smartFarmingBlog/smartFarming'
 import Footer from './landingPage/Footer'
@@ -19,6 +19,8 @@ import SignIn from './auth/SignIn'
 import VerifyOtp from './auth/VerifyOtp'
 import ForgotPassword from './auth/ForgotPassword'
 import ProtectedRoute from './components/ProtectedRoute'
+import TermsOfService from './legal/TermsOfService'
+import PrivacyPolicy from './legal/PrivacyPolicy'
 
 // Supplier portal
 import SupplierDashboard from './roles/supplier/SupplierDashboard'
@@ -44,10 +46,12 @@ function App() {
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/about" element={<AboutUs />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<PopularServices />} />
         <Route path="/blogs" element={<SmartFarming />} />
         <Route path="/contacts" element={<Footer />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/testCharts" element={<LandingPageChart />} />
 
         {/* Auth routes */}

@@ -1,86 +1,197 @@
-import { FaStar } from 'react-icons/fa';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Check, Sparkles } from "lucide-react";
+import { useGetStarted } from "@/hooks/useGetStarted";
+
+type Billing = "monthly" | "annual";
+
+interface Plan {
+  title: string;
+  description: string;
+  monthly: number | null; // null = custom pricing
+  annualPerMonth: number | null;
+  features: string[];
+  cta: { label: string; to?: string; href?: string };
+  popular?: boolean;
+}
 
 const PriceCards = () => {
+  const [billing, setBilling] = useState<Billing>("monthly");
+  const { to: startTo } = useGetStarted();
 
-    const plans = [
-      {
-        title: 'Free Plan',
-        price: '$0.00',
-        benefits: [
-          'Basic soil & crop analysis (limited)',
-          'Pro Plan – $19.99/month',
-          'Limited supplier connections',
-        ],
-        image: '/assets/pricing.png',
+  const plans: Plan[] = [
+    {
+      title: "Starter",
+      description: "For smallholder farmers getting started with smart farming.",
+      monthly: 0,
+      annualPerMonth: 0,
+      features: [
+        "1 farm profile",
+        "Basic soil & crop analysis",
+        "3-day weather forecast",
+        "Community access",
+      ],
+      cta: { label: "Get Started Free", to: startTo },
+    },
+    {
+      title: "Pro",
+      description: "For active farmers who want the full picture, all season.",
+      monthly: 10000,
+      annualPerMonth: 8000,
+      features: [
+        "Up to 10 farm profiles",
+        "Unlimited soil & crop reports",
+        "7-day weather & pest alerts",
+        "Personalised AI recommendations",
+        "Supplier & market insights",
+        "Priority support",
+      ],
+      cta: { label: "Start Free Trial", to: startTo },
+      popular: true,
+    },
+    {
+      title: "Enterprise",
+      description: "For cooperatives, suppliers, NGOs & government programs.",
+      monthly: null,
+      annualPerMonth: null,
+      features: [
+        "Unlimited farms & team members",
+        "Regional & nationwide data",
+        "Program & impact dashboards",
+        "API access & integrations",
+        "Dedicated account manager",
+      ],
+      cta: {
+        label: "Contact Sales",
+        href: "mailto:agrisenseproject@gmail.com?subject=AgriSense%20Enterprise%20enquiry",
       },
-      {
-        title: 'Pro Plan',
-        price: '$19.99',
-        benefits: [
-          'Unlimited soil & crop reports',
-          'Real-time weather & pest alerts',
-          'Supplier access & market insights',
-        ],
-        image: '/assets/pricing.png',
-      },
-      {
-        title: 'Enterprise Plan',
-        price: '$30.00',
-        benefits: [
-          'Nationwide agricultural data & reports',
-          ' Disaster response & seed distribution ',
-          ' Government & NGO collaboration tools',
-        ],
-        image: '/assets/pricing.png',
-      },
-    ];
+    },
+  ];
+
+  const formatPrice = (plan: Plan) => {
+    if (plan.monthly === null) return "Custom";
+    const value = billing === "monthly" ? plan.monthly : plan.annualPerMonth!;
+    return value === 0 ? "Free" : `RWF ${value.toLocaleString()}`;
+  };
+
   return (
     <div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-        {plans.map((plan, index) => (
+      {/* Billing toggle */}
+      <div className="mb-10 flex items-center justify-center gap-3">
+        <span
+          className={`text-sm font-semibold ${
+            billing === "monthly" ? "text-gray-900" : "text-gray-400"
+          }`}
+        >
+          Monthly
+        </span>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={billing === "annual"}
+          onClick={() => setBilling((b) => (b === "monthly" ? "annual" : "monthly"))}
+          className="relative h-7 w-14 rounded-full bg-[#2C6E49] transition-colors"
+        >
+          <span
+            className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${
+              billing === "annual" ? "left-8" : "left-1"
+            }`}
+          />
+        </button>
+        <span
+          className={`text-sm font-semibold ${
+            billing === "annual" ? "text-gray-900" : "text-gray-400"
+          }`}
+        >
+          Annual
+        </span>
+        <span className="rounded-full bg-lime-100 px-2.5 py-0.5 text-xs font-semibold text-[#2C6E49]">
+          Save 20%
+        </span>
+      </div>
+
+      {/* Cards */}
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {plans.map((plan) => (
           <div
-            key={index}
-            className="group bg-white border p-6 shadow-2xl hover:bg-[#377552] hover:text-white transition duration-600 cursor-pointer hover:border-white hover-shadow-[#2C6E49]"
+            key={plan.title}
+            className={`relative flex flex-col rounded-2xl border bg-white p-8 text-left transition-all ${
+              plan.popular
+                ? "border-[#2C6E49] shadow-2xl lg:-translate-y-2"
+                : "border-gray-200 shadow-sm hover:shadow-lg"
+            }`}
           >
-            <div className="mb-4 border-b-4 border-gray-600 group-hover:border-white  pb-4">
-              <img
-                src={plan.image}
-                alt={plan.title}
-                className="w-full h-40 object-cover rounded-lg mb-4 group-hover:brightness-75"
-              />
-              <h2 className="text-xl font-semibold  group-hover:text-white transition">
-                {plan.title}
-              </h2>
-            </div>
-
-            <div className="space-y-3 mt-10 pl-3 mb-10">
-              {plan.benefits.map((benefit, idx) => (
-                <div key={idx} className="flex items-start gap-3 text-left mb-6">
-                  <FaStar className="text-2xl text-[#377552] group-hover:text-white mt-1 transition" />
-                  <p className="text-gray-700 group-hover:text-white text-sm transition mt-1 font-medium">{benefit}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mb-6">
-              <span className="text-3xl font-bold text-[#377552] group-hover:text-white transition">
-                {plan.price}
+            {plan.popular && (
+              <span className="absolute -top-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1 rounded-full bg-[#2C6E49] px-3 py-1 text-xs font-semibold text-white shadow">
+                <Sparkles className="h-3.5 w-3.5" /> Most Popular
               </span>
-              <span className="text-gray-500 group-hover:text-white ml-1 text-sm transition font-semibold">/per month</span>
+            )}
+
+            <h3 className="text-lg font-bold text-gray-900">{plan.title}</h3>
+            <p className="mt-1.5 min-h-[40px] text-sm text-gray-500">{plan.description}</p>
+
+            <div className="mt-5 flex items-end gap-1">
+              <span className="text-4xl font-extrabold text-gray-900">{formatPrice(plan)}</span>
+              {plan.monthly !== null && plan.monthly > 0 && (
+                <span className="mb-1 text-sm font-medium text-gray-400">/mo</span>
+              )}
             </div>
+            {plan.monthly !== null && plan.monthly > 0 && billing === "annual" && (
+              <p className="mt-1 text-xs text-gray-400">
+                Billed annually (RWF {(plan.annualPerMonth! * 12).toLocaleString()}/yr)
+              </p>
+            )}
+            {plan.monthly === 0 && <p className="mt-1 text-xs text-gray-400">Forever free</p>}
+            {plan.monthly === null && (
+              <p className="mt-1 text-xs text-gray-400">Tailored to your organization</p>
+            )}
 
-            <button className="cursor-pointer bg-[#377552] w-full group-hover:bg-white group-hover:text-[#2C6E49] text-white py-2 px-4 rounded-md transition font-semibold">
-              Check Plan
-            </button>
+            {plan.cta.to ? (
+              <Link
+                to={plan.cta.to}
+                className={`mt-6 inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 font-semibold transition-colors ${
+                  plan.popular
+                    ? "bg-[#2C6E49] text-white hover:bg-[#23583a]"
+                    : "border border-[#2C6E49] text-[#2C6E49] hover:bg-[#2C6E49]/5"
+                }`}
+              >
+                {plan.cta.label}
+              </Link>
+            ) : (
+              <a
+                href={plan.cta.href}
+                className={`mt-6 inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 font-semibold transition-colors ${
+                  plan.popular
+                    ? "bg-[#2C6E49] text-white hover:bg-[#23583a]"
+                    : "border border-[#2C6E49] text-[#2C6E49] hover:bg-[#2C6E49]/5"
+                }`}
+              >
+                {plan.cta.label}
+              </a>
+            )}
 
-            <p className="mt-4 text-sm text-gray-500 group-hover:text-white transition">
-              Get 23% Save For Services
-            </p>
+            <div className="mt-8 border-t pt-6">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
+                What's included
+              </p>
+              <ul className="space-y-3">
+                {plan.features.map((f) => (
+                  <li key={f} className="flex items-start gap-2.5 text-sm text-gray-600">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#2C6E49]" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         ))}
       </div>
-    </div>
-  )
-}
 
-export default PriceCards
+      <p className="mt-8 text-center text-sm text-gray-500">
+        No credit card required to start · Cancel anytime · Prices in RWF
+      </p>
+    </div>
+  );
+};
+
+export default PriceCards;

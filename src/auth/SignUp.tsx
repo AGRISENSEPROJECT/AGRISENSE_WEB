@@ -147,8 +147,22 @@ const SignUp: React.FC = () => {
             />
             <span>
               I agree to the{" "}
-              <span className="text-[#2C6E49] font-medium">Terms of Service</span> and{" "}
-              <span className="text-[#2C6E49] font-medium">Privacy Policy</span>.
+              <Link
+                to="/terms"
+                target="_blank"
+                className="text-[#2C6E49] font-medium hover:underline"
+              >
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link
+                to="/privacy"
+                target="_blank"
+                className="text-[#2C6E49] font-medium hover:underline"
+              >
+                Privacy Policy
+              </Link>
+              .
             </span>
           </label>
           {errors.terms && <p className="text-xs text-red-600">{errors.terms}</p>}
