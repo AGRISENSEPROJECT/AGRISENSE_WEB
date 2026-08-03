@@ -1,5 +1,4 @@
-import SideBar from './SideBar';
-import Navbar from './Navbar';
+import DashboardLayout from "./DashboardLayout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -101,36 +100,32 @@ const Dashboard = () => {
 
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <SideBar />
-      
-      <main className="flex-1 flex flex-col overflow-auto bg-white">
-        <Navbar />
+    <DashboardLayout>
 
-    <div className="flex-1 p-6 bg-white">
-      <div className="flex justify-between items-start mb-8">
+    <div className="p-4 sm:p-6 bg-white">
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-[#0B6E4F]">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#0B6E4F]">
             Welcome back{user?.username ? `, ${user.username}` : ""} !
           </h1>
-          <p className="text-gray-500 md:test-sm">Here is an overview of your farms</p>
+          <p className="text-gray-500 text-sm">Here is an overview of your farms</p>
         </div>
 
-        <div className="flex items-end gap-2 md:flex-col lg:flex-row">
+        <div className="flex flex-col xs:flex-row sm:flex-row items-stretch sm:items-center gap-2">
           <div className="bg-white rounded-lg shadow-sm p-3 flex items-center border">
             {weather ? (
               <>
-                <WeatherIcon category={weather.current.category} className="h-5 w-5 mr-2 text-[#377552]" />
+                <WeatherIcon category={weather.current.category} className="h-5 w-5 mr-2 text-[#377552] shrink-0" />
                 <span className="font-semibold">{Math.round(weather.current.temperature)}°C</span>
-                <span className="text-gray-500 ml-2 md:text-sm">- {weather.current.label}</span>
+                <span className="text-gray-500 ml-2 text-sm truncate">- {weather.current.label}</span>
               </>
             ) : (
               <span className="text-gray-400 text-sm">Loading weather…</span>
             )}
           </div>
           <Button
-            onClick={() => navigate("/soil-detects")}
-            className="px-8 font-bold bg-[#377552] hover:bg-[#2D6A4F]"
+            onClick={() => navigate("/app/soil")}
+            className="px-6 font-bold bg-[#377552] hover:bg-[#2D6A4F] shrink-0"
           >
             Explore more
           </Button>
@@ -199,7 +194,7 @@ const Dashboard = () => {
         </Card>
     </div>
     </div>
-    <div className="flex flex-col lg:flex-row gap-6 mt-6 mx-5 bg-white">
+    <div className="flex flex-col lg:flex-row gap-6 mt-6 mx-4 sm:mx-5 bg-white">
         {/* Crop Growth Monitoring Chart */}
         <Card className="border shadow-sm lg:w-1/2">
           <CardContent className="p-6">
@@ -372,8 +367,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
-      </main>
-    </div>
+    </DashboardLayout>
   );
 };
 

@@ -1,68 +1,80 @@
-import { NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/useAuth';
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/useAuth";
+import { routes } from "@/lib/routes";
 
 interface SidebarLinks {
   title: string;
   icon: string;
   path: string;
+  end?: boolean;
 }
 
-const SideBar = () => {
+interface SideBarProps {
+  /** Called after a nav link is clicked (used to close the mobile drawer). */
+  onNavigate?: () => void;
+  /** Slightly tighter padding when rendered inside the mobile drawer. */
+  compact?: boolean;
+}
+
+const SideBar = ({ onNavigate, compact = false }: SideBarProps) => {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
   const Links: SidebarLinks[] = [
-    { title: "Dashboard", icon: "/assets/Dashboardicons/Dashboard.svg", path: "/dashboard" },
-    { title: "Crop Care", icon: "/assets/Dashboardicons/cropcare.svg", path: "/crop-care" },
-    { title: "Soil Detects", icon: "/assets/Dashboardicons/soilDetects.svg", path: "/soil-detects" },
-    { title: "Weather", icon: "/assets/Dashboardicons/weather.svg", path: "/weather" },
-    { title: "Analytics", icon: "/assets/Dashboardicons/analysis.svg", path: "/analytics" },
-    { title: "Community", icon: "/assets/Dashboardicons/community.svg", path: "/community" },
-    { title: "Help & Support", icon: "/assets/Dashboardicons/help.svg", path: "/help-and-support" },
-    { title: "Settings", icon: "/assets/Dashboardicons/settings.svg", path: "/settings" },
+    { title: "Dashboard", icon: "/assets/Dashboardicons/Dashboard.svg", path: routes.app.root, end: true },
+    { title: "Crop Care", icon: "/assets/Dashboardicons/cropcare.svg", path: routes.app.cropCare },
+    { title: "Soil Detects", icon: "/assets/Dashboardicons/soilDetects.svg", path: routes.app.soil },
+    { title: "Weather", icon: "/assets/Dashboardicons/weather.svg", path: routes.app.weather },
+    { title: "Analytics", icon: "/assets/Dashboardicons/analysis.svg", path: routes.app.analytics },
+    { title: "Community", icon: "/assets/Dashboardicons/community.svg", path: routes.app.community },
+    { title: "Help & Support", icon: "/assets/Dashboardicons/help.svg", path: routes.app.help },
+    { title: "Settings", icon: "/assets/Dashboardicons/settings.svg", path: routes.app.settings },
   ];
 
   const handleLogout = async () => {
     await logout();
-    navigate("/signin", { replace: true });
+    navigate(routes.auth.login, { replace: true });
   };
 
   return (
-    <aside className="w-64 h-screen bg-white border-r shadow-sm p-6 flex flex-col">
-      {/* Logo Section */}
-      <div className="mb-8 flex">
-        <img src="/assets/logo.png" alt="Logo" className="w-14" />
-        <h1 className="text-xl font-bold text-center mt-2">
+    <aside
+      className={`flex h-full w-64 flex-col border-r bg-white shadow-sm ${
+        compact ? "p-4" : "p-5 md:p-6"
+      }`}
+    >
+      <div className="mb-6 flex items-center gap-2 md:mb-8">
+        <img src="/assets/logo.png" alt="Logo" className="h-11 w-auto" />
+        <h1 className="text-lg font-bold">
           <span className="text-green-600">AGRI</span>SENSE
         </h1>
       </div>
 
-      {/* Navigation Links */}
-      <nav className="flex flex-col gap-4 flex-1">
-        {Links.map((link, index) => (
+      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
+        {Links.map((link) => (
           <NavLink
             to={link.path}
-            key={index}
+            end={link.end}
+            key={link.path}
+            onClick={onNavigate}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2 rounded-md transition ${
+              `flex items-center gap-3 rounded-md px-3 py-2.5 transition ${
                 isActive
-                  ? "bg-green-100 text-[#377552] font-semibold"
+                  ? "bg-green-100 font-semibold text-[#377552]"
                   : "text-gray-700 hover:bg-green-100"
               }`
             }
           >
-            <img className="w-5 h-5" src={link.icon} alt={`${link.title} icon`} />
+            <img className="h-5 w-5 shrink-0" src={link.icon} alt="" />
             <span className="text-sm">{link.title}</span>
           </NavLink>
         ))}
       </nav>
 
-      {/* Logout */}
       <button
         onClick={handleLogout}
-        className="flex items-center gap-3 px-3 py-2 rounded-md transition text-gray-700 hover:bg-red-50 hover:text-red-600 mt-4"
+        className="mt-4 flex items-center gap-3 rounded-md px-3 py-2.5 text-gray-700 transition hover:bg-red-50 hover:text-red-600"
       >
-        <img className="w-5 h-5" src="/assets/Dashboardicons/Logout.svg" alt="Logout icon" />
+        <img className="h-5 w-5" src="/assets/Dashboardicons/Logout.svg" alt="" />
         <span className="text-sm">Logout</span>
       </button>
     </aside>

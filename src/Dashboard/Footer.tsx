@@ -1,4 +1,5 @@
 import { Facebook, Instagram, Linkedin, MapPin, MessageSquare } from "lucide-react"
+import { Link } from "react-router-dom"
 
 
 const Footer:React.FC = () => {
@@ -75,19 +76,19 @@ const Footer:React.FC = () => {
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:underline transition-colors">
+                  <Link to="/about" className="hover:underline transition-colors">
                     About us
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:underline transition-colors">
+                  <Link to="/legal/privacy" className="hover:underline transition-colors">
                     Privacy policy
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:underline transition-colors">
-                    Sitemap
-                  </a>
+                  <Link to="/legal/terms" className="hover:underline transition-colors">
+                    Terms of Service
+                  </Link>
                 </li>
               </ul>
             </div>

@@ -1,6 +1,5 @@
+import DashboardLayout from "./DashboardLayout"
 import { useEffect, useMemo, useState } from 'react';
-import Navbar from './Navbar';
-import SideBar from './SideBar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Bar,
@@ -95,13 +94,9 @@ const Analytics = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <SideBar />
+    <DashboardLayout>
 
-      <main className="flex-1 flex flex-col overflow-auto bg-white">
-        <Navbar />
-
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-6">
           <h1 className="text-2xl font-bold text-[#0B6E4F]">Analytics</h1>
 
           {loading ? (
@@ -207,8 +202,7 @@ const Analytics = () => {
             </>
           )}
         </div>
-      </main>
-    </div>
+      </DashboardLayout>
   );
 };
 

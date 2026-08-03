@@ -45,7 +45,7 @@ const RoleLayout = ({
 
   const handleLogout = async () => {
     await logout();
-    navigate("/signin", { replace: true });
+    navigate("/auth/login", { replace: true });
   };
 
   const Sidebar = (

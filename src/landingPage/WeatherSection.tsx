@@ -86,7 +86,7 @@ const WeatherSection = () => {
             )}
           </div>
           <Link
-            to="/weather"
+            to="/app/weather"
             className="inline-block bg-[#0a7c42] hover:bg-[#086835] text-white px-8 py-2 rounded-md font-medium"
           >
             Read More

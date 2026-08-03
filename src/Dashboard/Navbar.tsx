@@ -1,6 +1,12 @@
+import type { ReactNode } from "react";
 import { useAuth } from "@/context/useAuth";
 
-const Navbar = () => {
+interface NavbarProps {
+  /** Optional left-side control (e.g. mobile menu button). */
+  menuButton?: ReactNode;
+}
+
+const Navbar = ({ menuButton }: NavbarProps) => {
   const { user } = useAuth();
 
   const displayName = user?.username || "Guest";
@@ -8,37 +14,38 @@ const Navbar = () => {
   const avatar = user?.profileImage || "/assets/Dashboardicons/profile.png";
 
   return (
-    <header className="flex items-center justify-between px-6 py-2 bg-white border-b shadow-sm w-full">
+    <header className="flex w-full items-center gap-3 border-b bg-white px-3 py-2 shadow-sm sm:gap-4 sm:px-6">
+      {menuButton}
 
-      {/* Search Input */}
-      <div className="flex-grow max-w-md">
+      {/* Search — hide on very small screens to free space */}
+      <div className="hidden max-w-md flex-1 sm:block">
         <input
-          type="text"
-          placeholder="🔍 Search..."
-          className="w-full px-4 py-2 rounded-md border bg-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          type="search"
+          placeholder="Search…"
+          className="w-full rounded-md border bg-gray-100 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
         />
       </div>
 
-      {/* Notification + Profile */}
-      <div className="flex items-center gap-6 ml-auto">
-        {/* Notification Bell */}
-        <div className="relative">
-          <img src="/assets/Dashboardicons/notification.svg" alt="Notification" className="w-6 h-6" />
-          <span className="absolute top-0 right-0 w-2 h-2 bg-[#377552] rounded-full"></span>
+      <div className="ml-auto flex items-center gap-3 sm:gap-5">
+        <div className="relative shrink-0">
+          <img
+            src="/assets/Dashboardicons/notification.svg"
+            alt="Notification"
+            className="h-5 w-5 sm:h-6 sm:w-6"
+          />
+          <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-[#377552]" />
         </div>
 
-        {/* Profile */}
-        <div className="flex items-center gap-3 border-l pl-4">
+        <div className="flex items-center gap-2 border-l pl-3 sm:gap-3 sm:pl-4">
           <img
             src={avatar}
             alt="User"
-            className="w-10 h-10 rounded-full object-cover bg-gray-100"
+            className="h-8 w-8 rounded-full bg-gray-100 object-cover sm:h-10 sm:w-10"
           />
-          <div>
-            <h2 className="text-sm font-semibold">{displayName}</h2>
-            <p className="text-xs text-gray-500">{displayEmail}</p>
+          <div className="hidden min-w-0 sm:block">
+            <h2 className="truncate text-sm font-semibold">{displayName}</h2>
+            <p className="truncate text-xs text-gray-500">{displayEmail}</p>
           </div>
-          <img src="/assets/arrow-down.svg" alt="Dropdown" className="w-4 h-4" />
         </div>
       </div>
     </header>

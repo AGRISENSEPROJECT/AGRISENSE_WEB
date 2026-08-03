@@ -66,7 +66,7 @@ const ForgotPassword: React.FC = () => {
     try {
       await authService.resetPassword({ email: email.trim(), otp, newPassword });
       setInfo("Password reset successfully! Redirecting to sign in…");
-      setTimeout(() => navigate("/signin", { state: { email: email.trim() } }), 1200);
+      setTimeout(() => navigate("/auth/login", { state: { email: email.trim() } }), 1200);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Reset failed.");
     } finally {
@@ -85,7 +85,7 @@ const ForgotPassword: React.FC = () => {
       footer={
         <p className="text-sm text-gray-600">
           Remembered it?{" "}
-          <Link to="/signin" className="text-[#2C6E49] font-semibold hover:underline">
+          <Link to="/auth/login" className="text-[#2C6E49] font-semibold hover:underline">
             Sign in
           </Link>
         </p>

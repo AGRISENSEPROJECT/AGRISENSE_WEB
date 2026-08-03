@@ -1,5 +1,4 @@
-import SideBar from "../SideBar"
-import Navbar from "../Navbar"
+import DashboardLayout from "../DashboardLayout"
 import { SoilTypeCards } from "./soil-type-cards"
 import { SoilGrowthChart } from "./soil-growth-chart"
 import { CropTimeline } from "./crop-timeline"
@@ -123,13 +122,9 @@ const SoilDetects = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <SideBar />
+    <DashboardLayout>
 
-      <main className="flex-1 flex flex-col overflow-auto bg-white">
-        <Navbar />
-
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-6">
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-2xl font-semibold text-gray-800">Soil Detects</h1>
           </div>
@@ -269,8 +264,7 @@ const SoilDetects = () => {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+    </DashboardLayout>
   )
 }
 

@@ -1,5 +1,7 @@
-import { Leaf, ShieldCheck, Sprout, CloudSun } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, Leaf, ShieldCheck, Sprout, CloudSun } from "lucide-react";
 import Logo from "/assets/logo.png";
+import { routes } from "@/lib/routes";
 
 interface AuthLayoutProps {
   title: string;
@@ -27,12 +29,15 @@ const AuthLayout = ({ title, subtitle, children, footer }: AuthLayoutProps) => {
         <div className="absolute top-1/3 left-1/2 h-40 w-40 rounded-full bg-lime-300/10 blur-2xl" />
 
         <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 w-full">
-          <div className="flex items-center gap-3">
+          <Link
+            to={routes.home}
+            className="flex w-fit items-center gap-3 transition-opacity hover:opacity-90"
+          >
             <img src={Logo} alt="AgriSense" className="h-11 w-11 object-contain drop-shadow" />
             <span className="text-2xl font-extrabold tracking-tight">
               AGRI<span className="text-lime-300">SENSE</span>
             </span>
-          </div>
+          </Link>
 
           <div className="space-y-8 max-w-md">
             <div className="space-y-4">
@@ -66,13 +71,25 @@ const AuthLayout = ({ title, subtitle, children, footer }: AuthLayoutProps) => {
       {/* Form panel */}
       <main className="flex-1 flex items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-md">
+          {/* Back to home */}
+          <Link
+            to={routes.home}
+            className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-[#2C6E49]"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to home
+          </Link>
+
           {/* Mobile logo */}
-          <div className="flex items-center justify-center gap-2 mb-8 lg:hidden">
+          <Link
+            to={routes.home}
+            className="mb-8 flex items-center justify-center gap-2 lg:hidden"
+          >
             <img src={Logo} alt="AgriSense" className="h-10 w-10 object-contain" />
             <span className="text-2xl font-extrabold tracking-tight text-gray-900">
               AGRI<span className="text-[#2C6E49]">SENSE</span>
             </span>
-          </div>
+          </Link>
 
           <div className="bg-white rounded-2xl shadow-[0_10px_40px_rgba(11,110,79,0.12)] border border-gray-100 p-8 sm:p-10">
             <div className="mb-8">

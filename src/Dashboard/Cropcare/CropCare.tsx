@@ -1,6 +1,5 @@
+import DashboardLayout from "../DashboardLayout"
 import { useEffect, useMemo, useState } from "react"
-import SideBar from "../SideBar"
-import Navbar from "../Navbar"
 import { YieldChart } from "./yield-chart"
 import { TemperatureGauge } from "./temperature-gauge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -60,13 +59,9 @@ const CropCare = () => {
   const gaugeTemp = weather ? Math.round(weather.current.temperature) : 0
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <SideBar />
+    <DashboardLayout>
 
-      <main className="flex-1 flex flex-col overflow-auto bg-white">
-        <Navbar />
-
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-semibold text-gray-800">Crop Care</h1>
           </div>
@@ -153,8 +148,7 @@ const CropCare = () => {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+    </DashboardLayout>
   )
 }
 

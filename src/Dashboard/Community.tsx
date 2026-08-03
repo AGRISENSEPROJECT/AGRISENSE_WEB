@@ -1,6 +1,5 @@
+import DashboardLayout from "./DashboardLayout"
 import { useCallback, useEffect, useState } from 'react';
-import Navbar from './Navbar';
-import SideBar from './SideBar';
 import { Heart, MessageCircle, Send, Loader2 } from 'lucide-react';
 import {
   ApiError,
@@ -129,13 +128,9 @@ const Community = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <SideBar />
+    <DashboardLayout>
 
-      <main className="flex-1 flex flex-col overflow-auto bg-white">
-        <Navbar />
-
-        <div className="p-6 max-w-3xl w-full mx-auto space-y-6">
+        <div className="p-4 sm:p-6 max-w-3xl w-full mx-auto space-y-6">
           <h1 className="text-2xl font-bold text-[#0B6E4F]">Community</h1>
 
           {error && (
@@ -271,8 +266,7 @@ const Community = () => {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </DashboardLayout>
   );
 };
 
