@@ -19,7 +19,7 @@ import Navbar from "../Navbar/Navbar";
 import Footer from "../Footer";
 import { useGetStarted } from "@/hooks/useGetStarted";
 import AboutUsImage from "/assets/about us.png";
-import FarmerImage from "/assets/farmer.png";
+import FarmerImage from "/assets/who-we-serve-farmer.png";
 
 const values = [
   {
@@ -266,7 +266,7 @@ const AboutPage = () => {
 
       {/* Who we serve */}
       <section className="mx-auto max-w-6xl px-6 py-16 md:py-20">
-        <div className="grid items-center gap-10 md:grid-cols-2 lg:gap-16">
+        <div className="grid items-center gap-10 md:grid-cols-2 lg:gap-14">
           <div>
             <h2 className="text-3xl font-bold text-gray-900">Who We Serve</h2>
             <p className="mt-3 text-gray-600">
@@ -286,8 +286,17 @@ const AboutPage = () => {
               ))}
             </div>
           </div>
-          <div className="overflow-hidden rounded-2xl shadow-lg">
-            <img src={FarmerImage} alt="Farmer using AgriSense" className="h-full w-full object-cover" />
+          <div className="relative overflow-hidden rounded-2xl shadow-lg">
+            <img
+              src={FarmerImage}
+              alt="Farmers growing crops with AgriSense"
+              className="h-64 w-full object-cover object-center sm:h-72 md:h-80"
+              loading="lazy"
+            />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-5 pb-4 pt-10">
+              <p className="text-sm font-semibold text-white">Built for farmers first</p>
+              <p className="text-xs text-white/80">Practical tools for fields across Rwanda</p>
+            </div>
           </div>
         </div>
       </section>
