@@ -80,7 +80,7 @@ const Waitlist = () => {
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
                   <CheckCircle2 className="h-8 w-8 text-[#2C6E49]" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900">You&apos;re on the list! 🎉</h3>
+                <h3 className="text-xl font-bold text-gray-900">You&apos;re on the list</h3>
                 <p className="text-gray-500 mt-2">
                   Thanks for joining. We&apos;ll email{" "}
                   <span className="font-semibold text-gray-700">{email}</span> with early-access

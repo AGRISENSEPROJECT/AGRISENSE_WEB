@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star, BadgeCheck } from 'lucide-react';
 
 interface Testimonial {
   id: number;
@@ -126,7 +126,7 @@ const TestimonialCarousel: React.FC = () => {
                   <div className="flex items-center">
                     <span className="font-medium">{testimonial.name}</span>
                     {testimonial.isVerified && (
-                      <span className="ml-1 text-yellow-500">✓</span>
+                      <BadgeCheck className="ml-1 h-4 w-4 text-[#0a7c42]" aria-label="Verified" />
                     )}
                   </div>
                 </div>

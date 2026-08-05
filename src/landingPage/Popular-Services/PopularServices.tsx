@@ -1,16 +1,13 @@
 import type React from "react"
-import SupplierMarketInsights from "/assets/serviceImages/SupplierMarketInsights.png"
-import WeatherClimate from "/assets/serviceImages/WeatherAndClimate.png"
-import FarmManagement from "/assets/serviceImages/FarmManagement.png"
-import SoilCropAnalysis from "/assets/serviceImages/Soil-And-Crop-Analysis.png"
-import GvtsNgos from "/assets/serviceImages/gvtsAndNgos.png"
-import FarmerSupplier from "/assets/serviceImages/Farmer-Suppliaer-MarketPlace.png"
 import supplierMarketIcon from "/assets/icons/supplier-market.svg"
 import weatherClimateIcon from "/assets/icons/weather-climate.svg"
 import farmManagementIcon from "/assets/icons/Farm-management.svg"
 import soilCropIcon from "/assets/icons/soil-crop-analysis.svg"
 import gorvenmentIcon from "/assets/icons/government.svg"
 import farmerSupplierIcon from "/assets/icons/farmer-supplier.svg"
+
+/** Cache-bust query so VPS / browsers pick up replaced public/ assets after deploy. */
+const v = "20260305"
 
 interface Service {
   title: string
@@ -24,37 +21,37 @@ const PopularServices: React.FC = () => {
     {
       title: "Supplier & Market Insights",
       description: "Track produce demand and supplier pricing for smarter selling.",
-      imageUrl: SupplierMarketInsights,
+      imageUrl: `/assets/serviceImages/SupplierMarketInsights.png?v=${v}`,
       icon: supplierMarketIcon,
     },
     {
       title: "Weather & Climate Monitor",
       description: "Hyperlocal forecasts and alerts for your sector and fields.",
-      imageUrl: WeatherClimate,
+      imageUrl: `/assets/serviceImages/WeatherAndClimate.png?v=${v}`,
       icon: weatherClimateIcon,
     },
     {
       title: "Farm Management",
       description: "Organize farms, acreage and field activities in one place.",
-      imageUrl: FarmManagement,
+      imageUrl: `/assets/serviceImages/FarmManagement.png?v=${v}`,
       icon: farmManagementIcon,
     },
     {
       title: "Soil & Crop Analysis",
       description: "Understand soil health and get crop recommendations.",
-      imageUrl: SoilCropAnalysis,
+      imageUrl: `/assets/serviceImages/Soil-And-Crop-Analysis.png?v=${v}`,
       icon: soilCropIcon,
     },
     {
       title: "Gvt & NGO Support",
       description: "Tools for programs, outreach and regional farm support.",
-      imageUrl: GvtsNgos,
+      imageUrl: `/assets/serviceImages/gvtsAndNgos.png?v=${v}`,
       icon: gorvenmentIcon,
     },
     {
       title: "Farmer-Supplier Marketplace",
       description: "Connect growers with trusted input suppliers nearby.",
-      imageUrl: FarmerSupplier,
+      imageUrl: `/assets/serviceImages/Farmer-Suppliaer-MarketPlace.png?v=${v}`,
       icon: farmerSupplierIcon,
     },
   ]
