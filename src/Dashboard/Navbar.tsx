@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useAuth } from "@/context/useAuth";
+import { UserAvatar } from "@/components/UserAvatar";
 
 interface NavbarProps {
   /** Optional left-side control (e.g. mobile menu button). */
@@ -11,7 +12,6 @@ const Navbar = ({ menuButton }: NavbarProps) => {
 
   const displayName = user?.username || "Guest";
   const displayEmail = user?.email || "";
-  const avatar = user?.profileImage || "/assets/Dashboardicons/profile.png";
 
   return (
     <header className="flex w-full items-center gap-3 border-b bg-white px-3 py-2 shadow-sm sm:gap-4 sm:px-6">
@@ -37,10 +37,11 @@ const Navbar = ({ menuButton }: NavbarProps) => {
         </div>
 
         <div className="flex items-center gap-2 border-l pl-3 sm:gap-3 sm:pl-4">
-          <img
-            src={avatar}
-            alt="User"
-            className="h-8 w-8 rounded-full bg-gray-100 object-cover sm:h-10 sm:w-10"
+          <UserAvatar
+            src={user?.profileImage}
+            alt={displayName}
+            sizeClassName="h-8 w-8 sm:h-10 sm:w-10"
+            iconClassName="h-4 w-4 sm:h-5 sm:w-5"
           />
           <div className="hidden min-w-0 sm:block">
             <h2 className="truncate text-sm font-semibold">{displayName}</h2>

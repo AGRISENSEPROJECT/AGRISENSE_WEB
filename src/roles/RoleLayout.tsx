@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/useAuth";
 import { Bell, Search, LogOut, Menu, X, type LucideIcon } from "lucide-react";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export interface RoleNavLink {
   title: string;
@@ -41,7 +42,6 @@ const RoleLayout = ({
 
   const displayName = user?.username || "Guest";
   const displayEmail = user?.email || "";
-  const avatar = user?.profileImage || "/assets/Dashboardicons/profile.png";
 
   const handleLogout = async () => {
     await logout();
@@ -142,10 +142,11 @@ const RoleLayout = ({
               />
             </div>
             <div className="flex items-center gap-3 border-l pl-4">
-              <img
-                src={avatar}
-                alt="User"
-                className="h-9 w-9 rounded-full bg-gray-100 object-cover"
+              <UserAvatar
+                src={user?.profileImage}
+                alt={displayName}
+                sizeClassName="h-9 w-9"
+                iconClassName="h-5 w-5"
               />
               <div className="hidden sm:block">
                 <p className="text-sm font-semibold leading-tight">{displayName}</p>

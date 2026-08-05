@@ -1,7 +1,8 @@
 import DashboardLayout from "./DashboardLayout"
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
 import { Loader2, Trash2, Plus } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { UserAvatar } from '@/components/UserAvatar';
 import {
   ApiError,
   authService,
@@ -182,10 +183,11 @@ function ProfileSection({
       {error && <Banner type="error">{error}</Banner>}
 
       <div className="flex items-center gap-4">
-        <img
-          src={user?.profileImage || '/assets/Dashboardicons/profile.png'}
+        <UserAvatar
+          src={user?.profileImage}
           alt="Avatar"
-          className="w-16 h-16 rounded-full object-cover bg-gray-100"
+          sizeClassName="h-16 w-16"
+          iconClassName="h-8 w-8"
         />
         <label className="text-sm font-semibold text-[#2C6E49] cursor-pointer hover:underline">
           {uploading ? 'Uploading…' : 'Change photo'}
