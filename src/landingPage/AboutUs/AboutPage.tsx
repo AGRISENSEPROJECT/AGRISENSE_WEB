@@ -50,10 +50,10 @@ const audiences = [
 ];
 
 const stats = [
-  { value: "10,000+", label: "Farmers reached" },
-  { value: "100,000", label: "Hectares covered" },
-  { value: "200+", label: "Suppliers connected" },
-  { value: "5", label: "Provinces served" },
+  { value: "60+", label: "Farmers onboarded" },
+  { value: "120", label: "Hectares covered" },
+  { value: "5+", label: "Suppliers connected" },
+  { value: "5", label: "Districts reached" },
 ];
 
 const AboutPage = () => {
@@ -121,7 +121,7 @@ const AboutPage = () => {
               <img src={AboutUsImage} alt="AgriSense in the field" className="h-full w-full object-cover" />
             </div>
             <div className="absolute -bottom-6 -right-4 hidden rounded-2xl bg-[#2C6E49] p-5 text-white shadow-xl sm:block">
-              <p className="text-2xl font-bold">100,000</p>
+              <p className="text-2xl font-bold">120</p>
               <p className="text-xs text-white/80">Hectares covered</p>
             </div>
           </div>
@@ -217,7 +217,7 @@ const AboutPage = () => {
             Ready to farm smarter with AgriSense?
           </h2>
           <p className="relative mx-auto mt-4 max-w-xl text-white/90">
-            Join thousands of farmers and partners already using data to grow more, waste less, and
+            Join early farmers and partners already using AgriSense to grow more, waste less, and
             build resilient livelihoods.
           </p>
           <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

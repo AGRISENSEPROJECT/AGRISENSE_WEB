@@ -118,7 +118,7 @@ const Waitlist = () => {
 
                 <div className="mt-4 flex items-center gap-2 text-xs text-gray-400">
                   <Users className="h-4 w-4" />
-                  Join thousands of farmers already signed up.
+                  Join early farmers already on the waitlist.
                 </div>
               </>
             )}

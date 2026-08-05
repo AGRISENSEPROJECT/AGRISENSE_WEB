@@ -20,15 +20,15 @@ const AboutUs: FC = () => {
         {/* Overlapping Cards */}
         <div className="absolute text-lg font-semibold left-10 sm:-left-20 md:-left-10 lg:-left-20 top-10 flex flex-col space-y-4 z-10">
           <Card className="w-28 sm:w-32 text-center p-4 shadow-lg bg-white">
-            <div className="text-sm font-semibold">10,000+</div>
-            <div className="text-xs text-gray-600">Farmers Reached</div>
+            <div className="text-sm font-semibold">60+</div>
+            <div className="text-xs text-gray-600">Farmers Onboarded</div>
           </Card>
           <Card className="w-28 sm:w-32 text-center p-4 bg-[#377552] text-white shadow-lg">
-            <div className="text-sm font-semibold">100,000</div>
+            <div className="text-sm font-semibold">120</div>
             <div className="text-xs">Hectares Covered</div>
           </Card>
           <Card className="w-28 sm:w-32 text-center p-4 shadow-lg bg-white">
-            <div className="text-sm font-semibold">200+</div>
+            <div className="text-sm font-semibold">5+</div>
             <div className="text-xs text-gray-600">Suppliers Connected</div>
           </Card>
         </div>

@@ -9,26 +9,27 @@ interface ContentType {
 
 const Counter = () => {
   const contents: ContentType[] = [
-    { image: '/assets/counter/HappyCustomer.svg',
-     count: 832,
-     description: 'Happy Customers',
-   },
-   {
-     image: '/assets/counter/completedProjects.svg',
-     count: 45,
-     description: 'Completed Projects',
-   },
-   {
-     image: '/assets/counter/yearsOfExperience.svg',
-     count: 42,
-     description: 'Years of Experience',
-   },
-   {
-     image: '/assets/counter/professionalTeam.svg',
-     count: 25,
-     description: 'Professional Team ',
-   },
- ]
+    {
+      image: '/assets/counter/HappyCustomer.svg',
+      count: 60,
+      description: 'Farmers onboarded',
+    },
+    {
+      image: '/assets/counter/completedProjects.svg',
+      count: 12,
+      description: 'Pilot farms',
+    },
+    {
+      image: '/assets/counter/yearsOfExperience.svg',
+      count: 2,
+      description: 'Years building',
+    },
+    {
+      image: '/assets/counter/professionalTeam.svg',
+      count: 5,
+      description: 'Team members',
+    },
+  ];
   const { ref, inView } = useInView({
     triggerOnce: true,
     threshold: 0.3,

@@ -12,6 +12,7 @@ import { useAuth } from "@/context/useAuth";
 import { useFarms } from "@/hooks/useFarms";
 import { useWeather } from "@/hooks/useWeather";
 import WeatherIcon from "@/components/WeatherIcon";
+import { farmPlaceCandidates, formatFarmPlace } from "@/lib/weather";
 
 interface Card{
   title:string
@@ -27,10 +28,13 @@ const Dashboard = () => {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
 
   const firstFarm = farms[0];
-  const weatherPlace = firstFarm
-    ? [firstFarm.district, firstFarm.province, firstFarm.country].filter(Boolean).join(", ")
-    : undefined;
-  const { weather } = useWeather({ place: weatherPlace, useGeolocation: !weatherPlace });
+  const weatherPlace = firstFarm ? formatFarmPlace(firstFarm) : undefined;
+  const { weather } = useWeather({
+    place: weatherPlace,
+    placeCandidates: firstFarm ? farmPlaceCandidates(firstFarm) : undefined,
+    useGeolocation: true,
+    preferDevice: !weatherPlace,
+  });
 
   useEffect(() => {
     document.title = 'Dashboard | AGRISENSE';
@@ -124,7 +128,7 @@ const Dashboard = () => {
             )}
           </div>
           <Button
-            onClick={() => navigate("/app/soil")}
+            onClick={() => navigate("/app/crop-care")}
             className="px-6 font-bold bg-[#377552] hover:bg-[#2D6A4F] shrink-0"
           >
             Explore more

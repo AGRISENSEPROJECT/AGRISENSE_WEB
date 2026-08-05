@@ -30,6 +30,7 @@ export const routes = {
     community: "/app/community",
     help: "/app/help",
     settings: "/app/settings",
+    subscription: "/app/subscription",
   },
 
   supplier: {

@@ -23,11 +23,11 @@ const SideBar = ({ onNavigate, compact = false }: SideBarProps) => {
   const Links: SidebarLinks[] = [
     { title: "Dashboard", icon: "/assets/Dashboardicons/Dashboard.svg", path: routes.app.root, end: true },
     { title: "Crop Care", icon: "/assets/Dashboardicons/cropcare.svg", path: routes.app.cropCare },
-    { title: "Soil Detects", icon: "/assets/Dashboardicons/soilDetects.svg", path: routes.app.soil },
     { title: "Weather", icon: "/assets/Dashboardicons/weather.svg", path: routes.app.weather },
     { title: "Analytics", icon: "/assets/Dashboardicons/analysis.svg", path: routes.app.analytics },
     { title: "Community", icon: "/assets/Dashboardicons/community.svg", path: routes.app.community },
     { title: "Help & Support", icon: "/assets/Dashboardicons/help.svg", path: routes.app.help },
+    { title: "Subscription", icon: "/assets/Dashboardicons/settings.svg", path: routes.app.subscription },
     { title: "Settings", icon: "/assets/Dashboardicons/settings.svg", path: routes.app.settings },
   ];
 

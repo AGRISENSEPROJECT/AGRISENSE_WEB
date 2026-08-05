@@ -90,12 +90,46 @@ interface GeocodeResponse {
     name: string;
     country?: string;
     admin1?: string;
+    admin2?: string;
     latitude: number;
     longitude: number;
   }>;
 }
 
-/** Resolve a place name (e.g. "Gasabo, Rwanda") to coordinates. */
+export interface FarmLocationParts {
+  village?: string | null;
+  cell?: string | null;
+  sector?: string | null;
+  district?: string | null;
+  province?: string | null;
+  country?: string | null;
+}
+
+/**
+ * Build the most specific place query possible from farm location fields.
+ * Tries village → cell → sector → district → province → country.
+ */
+export function formatFarmPlace(farm: FarmLocationParts): string {
+  return [farm.village, farm.cell, farm.sector, farm.district, farm.province, farm.country]
+    .map((p) => (typeof p === "string" ? p.trim() : ""))
+    .filter(Boolean)
+    .join(", ");
+}
+
+/** Progressive queries from most specific to broadest (for geocode fallback). */
+export function farmPlaceCandidates(farm: FarmLocationParts): string[] {
+  const parts = [farm.village, farm.cell, farm.sector, farm.district, farm.province, farm.country]
+    .map((p) => (typeof p === "string" ? p.trim() : ""))
+    .filter(Boolean);
+  if (parts.length === 0) return [];
+  const candidates: string[] = [];
+  for (let i = 0; i < parts.length; i++) {
+    candidates.push(parts.slice(i).join(", "));
+  }
+  return candidates;
+}
+
+/** Resolve a place name (e.g. "Remera, Gasabo, Rwanda") to coordinates. */
 export async function geocode(query: string): Promise<GeoLocation | null> {
   const url = `${GEOCODE_URL}?name=${encodeURIComponent(query)}&count=1&language=en&format=json`;
   const res = await fetch(url);
@@ -106,10 +140,77 @@ export async function geocode(query: string): Promise<GeoLocation | null> {
   return {
     name: first.name,
     country: first.country,
-    admin1: first.admin1,
+    admin1: first.admin1 ?? first.admin2,
     latitude: first.latitude,
     longitude: first.longitude,
   };
+}
+
+/**
+ * Reverse-geocode coordinates to the smallest available place name
+ * (village / locality when available). Uses BigDataCloud client API (CORS-friendly).
+ */
+export async function reverseGeocode(
+  latitude: number,
+  longitude: number,
+): Promise<GeoLocation | null> {
+  try {
+    const url =
+      `https://api.bigdatacloud.net/data/reverse-geocode-client` +
+      `?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      locality?: string;
+      city?: string;
+      localityInfo?: {
+        administrative?: Array<{ name?: string; adminLevel?: number; description?: string }>;
+      };
+      principalSubdivision?: string;
+      countryName?: string;
+    };
+
+    const admins = [...(data.localityInfo?.administrative ?? [])]
+      .filter((a) => a.name)
+      .sort((a, b) => (b.adminLevel ?? 0) - (a.adminLevel ?? 0));
+
+    // Most local label (cell / neighbourhood / village).
+    const smallest =
+      data.locality ||
+      admins[0]?.name ||
+      data.city ||
+      data.principalSubdivision ||
+      "Your location";
+
+    // Next useful level up (sector / district / city) — skip duplicates of `smallest`.
+    const mid =
+      [data.city, ...admins.map((a) => a.name), data.principalSubdivision]
+        .filter((n): n is string => Boolean(n && n !== smallest))
+        .find(Boolean) || undefined;
+
+    return {
+      name: smallest,
+      admin1: mid,
+      country: data.countryName,
+      latitude,
+      longitude,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Short display label: "Kiyovu, Nyarugenge, Rwanda". */
+export function formatWeatherLocation(loc: {
+  name: string;
+  admin1?: string;
+  country?: string;
+}): string {
+  return [loc.name, loc.admin1, loc.country]
+    .map((p) => (typeof p === "string" ? p.trim() : ""))
+    .filter(Boolean)
+    .filter((p, i, arr) => arr.indexOf(p) === i)
+    .join(", ");
 }
 
 /** Search for multiple matching places (for autocomplete). */
@@ -204,14 +305,47 @@ export async function getForecast(
   return { current, daily };
 }
 
-/** Convenience: resolve by coordinates and (optionally) a display name. */
+/** Convenience: resolve by coordinates and reverse-geocode a precise display name. */
 export async function getWeatherByCoords(
   latitude: number,
   longitude: number,
   name = "Your location",
 ): Promise<WeatherBundle> {
-  const { current, daily } = await getForecast(latitude, longitude);
-  return { location: { name, latitude, longitude }, current, daily };
+  const [forecast, reversed] = await Promise.all([
+    getForecast(latitude, longitude),
+    reverseGeocode(latitude, longitude),
+  ]);
+  const location: GeoLocation = reversed ?? { name, latitude, longitude };
+  return { location, current: forecast.current, daily: forecast.daily };
+}
+
+/**
+ * Try multiple place queries (most specific first) until one geocodes,
+ * then fetch the forecast for those coordinates.
+ */
+export async function getWeatherByPlaceQueries(
+  queries: string[],
+): Promise<WeatherBundle | null> {
+  for (const q of queries) {
+    const trimmed = q.trim();
+    if (!trimmed) continue;
+    const location = await geocode(trimmed);
+    if (!location) continue;
+    const { current, daily } = await getForecast(location.latitude, location.longitude);
+    // Prefer the query's most-specific label when geocode returns a coarse name.
+    const displayName = trimmed.split(",")[0]?.trim() || location.name;
+    return {
+      location: { ...location, name: displayName },
+      current,
+      daily,
+    };
+  }
+  return null;
+}
+
+/** Convenience: resolve by place name via geocoding, then fetch the forecast. */
+export async function getWeatherByPlace(query: string): Promise<WeatherBundle | null> {
+  return getWeatherByPlaceQueries([query]);
 }
 
 export type AdvisoryLevel = "info" | "warning" | "danger" | "success";
@@ -286,12 +420,4 @@ export function getFarmingAdvisories(bundle: WeatherBundle): Advisory[] {
   }
 
   return advisories;
-}
-
-/** Convenience: resolve by place name via geocoding, then fetch the forecast. */
-export async function getWeatherByPlace(query: string): Promise<WeatherBundle | null> {
-  const location = await geocode(query);
-  if (!location) return null;
-  const { current, daily } = await getForecast(location.latitude, location.longitude);
-  return { location, current, daily };
 }

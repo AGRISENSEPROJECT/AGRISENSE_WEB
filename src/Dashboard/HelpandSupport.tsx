@@ -12,7 +12,9 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/useAuth';
 
-const SUPPORT_EMAIL = 'support@agrisense.app';
+const SUPPORT_EMAIL = 'irasubizasalyneslon@gmail.com';
+const SUPPORT_PHONE = '+250 798 963 223';
+const SUPPORT_PHONE_TEL = '+250798963223';
 
 interface Faq {
   q: string;
@@ -22,11 +24,11 @@ interface Faq {
 const FAQS: Faq[] = [
   {
     q: 'How do I add a farm?',
-    a: 'Go to Settings → Farm Management → Add Farm. Fill in the farm details (name, size, soil type and location) and save. Your farms then appear across the dashboard, weather and soil analysis pages.',
+    a: 'Go to Settings → Farm Management → Add Farm. Fill in the farm details (name, size, soil type and location) and save. Your farms then appear across the dashboard, weather and crop care pages.',
   },
   {
-    q: 'How does soil analysis work?',
-    a: 'Open Soil Detects, select a farm, upload a soil image and enter the field readings (temperature, humidity, rainfall, N-P-K). AgriSense runs the model and returns tailored crop, fertilizer and irrigation recommendations.',
+    q: 'How does crop care work?',
+    a: 'Open Crop Care to see recommendations for your farms. Add farm details in Settings, then use weather and field insights to guide planting, fertilizer and irrigation decisions.',
   },
   {
     q: 'Where does the weather data come from?',
@@ -169,13 +171,13 @@ const HelpandSupport = () => {
                     </div>
                   </a>
                   <a
-                    href="tel:+250788000000"
+                    href={`tel:${SUPPORT_PHONE_TEL}`}
                     className="flex items-center gap-3 rounded-lg border p-3 hover:bg-gray-50"
                   >
                     <Phone className="h-5 w-5 text-[#2C6E49]" />
                     <div>
                       <p className="text-sm font-medium">Phone</p>
-                      <p className="text-xs text-gray-500">+250 788 000 000</p>
+                      <p className="text-xs text-gray-500">{SUPPORT_PHONE}</p>
                     </div>
                   </a>
                 </CardContent>

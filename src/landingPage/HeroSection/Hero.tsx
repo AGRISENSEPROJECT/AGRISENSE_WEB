@@ -11,9 +11,9 @@ const HIGHLIGHTS = [
 ]
 
 const STATS = [
-    { value: "10K+", label: "Farmers empowered" },
-    { value: "25K+", label: "Farms monitored" },
-    { value: "95%", label: "Prediction accuracy" },
+    { value: "60+", label: "Farmers onboarded" },
+    { value: "25+", label: "Farms monitored" },
+    { value: "5", label: "Districts reached" },
 ]
 
 export default function HeroSection() {
