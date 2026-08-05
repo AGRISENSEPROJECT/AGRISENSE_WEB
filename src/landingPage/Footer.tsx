@@ -52,7 +52,7 @@ const Footer = () => {
               <ul className="space-y-1 sm:space-y-2 text-sm sm:text-base">
                 <li>+250 798 963 223</li>
                 <li>irasubizasalyneslon@gmail.com</li>
-                <li>123 RCA-CORE, Nyabihu, Rwanda</li>
+                <li>Nyabihu, Rwanda</li>
               </ul>
             </div>
 

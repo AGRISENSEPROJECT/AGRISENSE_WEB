@@ -155,7 +155,7 @@ const TermsOfService = () => {
           >
             irasubizasalyneslon@gmail.com
           </a>{" "}
-          or by post at 123 RCA-CORE, Nyabihu, Rwanda.
+          or by post at Nyabihu, Rwanda.
         </p>
       </LegalSectionBlock>
     </LegalLayout>
