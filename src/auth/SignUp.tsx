@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User } from 'lucide-react';
 import { ApiError, authService } from "@/api";
 import {
@@ -19,8 +19,16 @@ interface FieldErrors {
   terms?: string;
 }
 
+interface SignUpState {
+  plan?: string;
+  billing?: string;
+}
+
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const planState = (location.state as SignUpState | null) ?? {};
+  const isPro = planState.plan === "pro";
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -61,7 +69,9 @@ const SignUp: React.FC = () => {
         username: sanitizeSingleLine(username),
         password,
       });
-      navigate("/auth/verify-otp", { state: { email: email.trim() } });
+      navigate("/auth/verify-otp", {
+        state: { email: email.trim(), plan: planState.plan, billing: planState.billing },
+      });
     } catch (err) {
       setFormError(
         err instanceof ApiError ? err.message : "Something went wrong. Please try again.",
@@ -74,11 +84,15 @@ const SignUp: React.FC = () => {
   return (
     <AuthLayout
       title="Create your account"
-      subtitle="Start managing your farms in minutes"
+      subtitle={
+        isPro
+          ? "Start your Pro free trial after you verify your email"
+          : "Start managing your farms in minutes"
+      }
       footer={
         <p className="text-sm text-gray-600">
           Already have an account?{" "}
-          <Link to="/auth/login" className="text-[#2C6E49] font-semibold hover:underline">
+          <Link to="/auth/login" className="font-semibold text-[#2C6E49] hover:underline">
             Sign in
           </Link>
         </p>

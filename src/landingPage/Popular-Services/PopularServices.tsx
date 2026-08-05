@@ -14,48 +14,80 @@ import farmerSupplierIcon from "/assets/icons/farmer-supplier.svg"
 
 interface Service {
   title: string
+  description: string
   imageUrl: string
   icon: string
 }
 
 const PopularServices: React.FC = () => {
   const services: Service[] = [
-    { title: "Supplier & Market Insights", imageUrl: SupplierMarketInsights, icon: supplierMarketIcon },
-    { title: "Weather & Climate Monitor", imageUrl: WeatherClimate, icon: weatherClimateIcon },
-    { title: "Farm Management", imageUrl: FarmManagement, icon: farmManagementIcon },
-    { title: "Soil & Crop Analysis", imageUrl: SoilCropAnalysis, icon: soilCropIcon },
-    { title: "Gvt & NGO Support", imageUrl: GvtsNgos, icon: gorvenmentIcon },
-    { title: "Farmer-Supplier Marketplace", imageUrl: FarmerSupplier, icon: farmerSupplierIcon },
+    {
+      title: "Supplier & Market Insights",
+      description: "Track produce demand and supplier pricing for smarter selling.",
+      imageUrl: SupplierMarketInsights,
+      icon: supplierMarketIcon,
+    },
+    {
+      title: "Weather & Climate Monitor",
+      description: "Hyperlocal forecasts and alerts for your sector and fields.",
+      imageUrl: WeatherClimate,
+      icon: weatherClimateIcon,
+    },
+    {
+      title: "Farm Management",
+      description: "Organize farms, acreage and field activities in one place.",
+      imageUrl: FarmManagement,
+      icon: farmManagementIcon,
+    },
+    {
+      title: "Soil & Crop Analysis",
+      description: "Understand soil health and get crop recommendations.",
+      imageUrl: SoilCropAnalysis,
+      icon: soilCropIcon,
+    },
+    {
+      title: "Gvt & NGO Support",
+      description: "Tools for programs, outreach and regional farm support.",
+      imageUrl: GvtsNgos,
+      icon: gorvenmentIcon,
+    },
+    {
+      title: "Farmer-Supplier Marketplace",
+      description: "Connect growers with trusted input suppliers nearby.",
+      imageUrl: FarmerSupplier,
+      icon: farmerSupplierIcon,
+    },
   ]
 
   return (
-    <div className="bg-[#2C6E49F2] p-4 sm:p-8 flex flex-col items-center justify-center">
-      <div className="text-center mb-6 sm:mb-8">
-        <p className="text-white text-lg font-bold mb-3 sm:mb-5">Popular Services We Provide</p>
-        <h1 className="text-xl sm:text-2xl font-bold text-white">Boost your farm's productivity today!</h1>
+    <div className="flex flex-col items-center justify-center bg-[#2C6E49F2] p-4 sm:p-8 md:py-14">
+      <div className="mb-6 text-center sm:mb-8">
+        <p className="mb-3 text-lg font-bold text-white sm:mb-5">Popular Services We Provide</p>
+        <h1 className="text-xl font-bold text-white sm:text-2xl">
+          Boost your farm&apos;s productivity today!
+        </h1>
       </div>
-      <div className="mt-6 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8 max-w-6xl mx-auto">
+      <div className="mx-auto mt-6 grid max-w-6xl grid-cols-1 gap-4 sm:mt-10 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3">
         {services.map((service) => (
           <div
             key={service.title}
-            className="bg-white flex flex-col items-center p-4 sm:p-6 rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300"
+            className="flex flex-col items-center rounded-2xl bg-white p-4 shadow-md transition-shadow duration-300 hover:shadow-xl sm:p-6"
           >
-            {/* Icon circle */}
-            <div className="bg-[#2C6E49] w-12 sm:w-14 h-12 sm:h-14 flex items-center justify-center mb-3 sm:mb-4 rounded-full shadow-lg">
-              <img src={service.icon || "/placeholder.svg"} alt="" className="w-5 sm:w-6 h-5 sm:h-6" />
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#2C6E49] shadow-lg sm:mb-4 sm:h-14 sm:w-14">
+              <img src={service.icon || "/placeholder.svg"} alt="" className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
 
-            {/* Title */}
-            <h2 className="text-base sm:text-lg font-semibold text-center text-gray-800 mb-4 sm:mb-6">
+            <h2 className="mb-2 text-center text-base font-semibold text-gray-800 sm:text-lg">
               {service.title}
             </h2>
+            <p className="mb-4 text-center text-sm text-gray-500 sm:mb-5">{service.description}</p>
 
-            {/* Image */}
-            <div className="w-full max-w-xs aspect-video rounded-lg overflow-hidden">
+            <div className="aspect-video w-full max-w-xs overflow-hidden rounded-lg">
               <img
                 src={service.imageUrl || "/placeholder.svg"}
                 alt={service.title}
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
+                loading="lazy"
               />
             </div>
           </div>

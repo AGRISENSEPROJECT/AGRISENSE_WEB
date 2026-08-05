@@ -10,6 +10,8 @@ import { Alert, PasswordField, SubmitButton, TextField } from "./form-fields";
 interface LocationState {
   from?: { pathname?: string };
   email?: string;
+  plan?: string;
+  billing?: string;
 }
 
 const SignIn: React.FC = () => {
@@ -48,7 +50,13 @@ const SignIn: React.FC = () => {
     setLoading(true);
     try {
       await login(email.trim(), password, remember);
-      navigate(from, { replace: true });
+      navigate(from, {
+        replace: true,
+        state:
+          state?.plan || state?.billing
+            ? { plan: state.plan, billing: state.billing }
+            : undefined,
+      });
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 401 && /verif/i.test(err.message)) {
@@ -72,12 +80,12 @@ const SignIn: React.FC = () => {
   return (
     <AuthLayout
       title="Welcome back"
-      subtitle="Sign in to access your farms and insights"
+      subtitle="Sign in to continue to AgriSense"
       footer={
         <p className="text-sm text-gray-600">
           Don&apos;t have an account?{" "}
-          <Link to="/auth/register" className="text-[#2C6E49] font-semibold hover:underline">
-            Create one
+          <Link to="/auth/register" className="font-semibold text-[#2C6E49] hover:underline">
+            Sign up
           </Link>
         </p>
       }
@@ -87,7 +95,7 @@ const SignIn: React.FC = () => {
 
         <TextField
           id="email"
-          label="Email"
+          label="Email address"
           type="email"
           value={email}
           onChange={(v) => setEmail(v)}
@@ -103,15 +111,15 @@ const SignIn: React.FC = () => {
           label="Password"
           value={password}
           onChange={(v) => setPassword(v)}
-          placeholder="Enter your password"
+          placeholder="Your password"
           icon={<Lock className="h-5 w-5" />}
           error={errors.password}
           autoComplete="current-password"
           required
         />
 
-        <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+        <div className="flex items-center justify-between gap-3">
+          <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-gray-600">
             <input
               type="checkbox"
               checked={remember}
@@ -120,13 +128,16 @@ const SignIn: React.FC = () => {
             />
             Remember me
           </label>
-          <Link to="/auth/forgot-password" className="text-sm text-[#2C6E49] font-medium hover:underline">
-            Forgot password?
+          <Link
+            to="/auth/forgot-password"
+            className="text-sm font-semibold text-[#2C6E49] hover:underline"
+          >
+            Forgot?
           </Link>
         </div>
 
         <SubmitButton loading={loading}>
-          {loading ? "Signing in…" : "Sign In"}
+          {loading ? "Signing in…" : "Sign in"}
         </SubmitButton>
       </form>
     </AuthLayout>

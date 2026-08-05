@@ -1,5 +1,6 @@
 import DashboardLayout from "./DashboardLayout"
 import { useCallback, useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Loader2, Trash2, Plus } from 'lucide-react';
 import {
   ApiError,
@@ -17,6 +18,7 @@ import {
   validatePhone,
   validateUsername,
 } from '@/lib/validation';
+import { routes } from '@/lib/routes';
 
 const SOIL_TYPES: SoilType[] = ['clay', 'sandy', 'loamy', 'silty', 'peaty', 'chalky'];
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB per API docs
@@ -41,6 +43,8 @@ type TabId = 'profile' | 'security' | 'farms';
 
 const Settings = () => {
   const { user, refreshProfile } = useAuth();
+  const location = useLocation();
+  const planFromPricing = (location.state as { plan?: string } | null)?.plan;
   const [tab, setTab] = useState<TabId>('profile');
 
   useEffect(() => {
@@ -51,6 +55,19 @@ const Settings = () => {
     <DashboardLayout>
         <div className="p-4 sm:p-6 max-w-4xl w-full mx-auto space-y-6">
           <h1 className="text-2xl font-bold text-[#0B6E4F]">Settings</h1>
+
+          {planFromPricing === 'pro' && (
+            <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700">
+              Looking for Pro?{" "}
+              <Link
+                to={routes.app.subscription}
+                state={{ plan: 'pro' }}
+                className="font-semibold text-[#2C6E49] hover:underline"
+              >
+                Open subscription &amp; payment
+              </Link>
+            </div>
+          )}
 
           <div className="flex gap-2 border-b overflow-x-auto">
             {(['profile', 'security', 'farms'] as TabId[]).map((t) => (

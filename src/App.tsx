@@ -8,10 +8,11 @@ import Analytics from './Dashboard/Analytics'
 import Community from './Dashboard/Community'
 import HelpandSupport from './Dashboard/HelpandSupport'
 import Settings from './Dashboard/Settings'
+import Subscription from './Dashboard/Subscription'
 import AboutPage from './landingPage/AboutUs/AboutPage'
-import PopularServices from './landingPage/Popular-Services/PopularServices'
-import SmartFarming from './landingPage/smartFarmingBlog/smartFarming'
-import Footer from './landingPage/Footer'
+import ServicesPage from './landingPage/Popular-Services/ServicesPage'
+import BlogPage from './landingPage/smartFarmingBlog/BlogPage'
+import ContactPage from './landingPage/ContactPage'
 import LandingPageChart from './testCharts/LandingPageChart'
 import SignUp from './auth/SignUp'
 import SignIn from './auth/SignIn'
@@ -46,9 +47,9 @@ function App() {
       {/* Public */}
       <Route path={routes.home} element={<LandingPage />} />
       <Route path={routes.about} element={<AboutPage />} />
-      <Route path={routes.services} element={<PopularServices />} />
-      <Route path={routes.blog} element={<SmartFarming />} />
-      <Route path={routes.contact} element={<Footer />} />
+      <Route path={routes.services} element={<ServicesPage />} />
+      <Route path={routes.blog} element={<BlogPage />} />
+      <Route path={routes.contact} element={<ContactPage />} />
       <Route path="/testCharts" element={<LandingPageChart />} />
 
       {/* Legal */}
@@ -70,6 +71,7 @@ function App() {
       <Route path={routes.app.community} element={<ProtectedRoute><Community /></ProtectedRoute>} />
       <Route path={routes.app.help} element={<ProtectedRoute><HelpandSupport /></ProtectedRoute>} />
       <Route path={routes.app.settings} element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path={routes.app.subscription} element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
 
       {/* Supplier portal */}
       <Route path={routes.supplier.root} element={<ProtectedRoute><SupplierDashboard /></ProtectedRoute>} />

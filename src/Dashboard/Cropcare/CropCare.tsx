@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react"
 import { predictionService, type Recommendation } from "@/api"
 import { useFarms } from "@/hooks/useFarms"
 import { useWeather } from "@/hooks/useWeather"
+import { farmPlaceCandidates, formatFarmPlace } from "@/lib/weather"
 
 const CropCare = () => {
   const { farms } = useFarms()
@@ -19,10 +20,13 @@ const CropCare = () => {
   }, [])
 
   const firstFarm = farms[0]
-  const weatherPlace = firstFarm
-    ? [firstFarm.district, firstFarm.province, firstFarm.country].filter(Boolean).join(", ")
-    : undefined
-  const { weather } = useWeather({ place: weatherPlace, useGeolocation: !weatherPlace })
+  const weatherPlace = firstFarm ? formatFarmPlace(firstFarm) : undefined
+  const { weather } = useWeather({
+    place: weatherPlace,
+    placeCandidates: firstFarm ? farmPlaceCandidates(firstFarm) : undefined,
+    useGeolocation: true,
+    preferDevice: !weatherPlace,
+  })
 
   useEffect(() => {
     let active = true
@@ -79,8 +83,7 @@ const CropCare = () => {
                     </div>
                   ) : recommendations.length === 0 ? (
                     <p className="text-sm text-gray-500 py-6">
-                      No recommendations yet. Run a soil analysis in{" "}
-                      <span className="font-medium">Soil Detects</span> to generate crop care advice.
+                      No recommendations yet. Add farm details in Settings and check back for crop care advice.
                     </p>
                   ) : (
                     <div className="rounded-md border overflow-hidden">

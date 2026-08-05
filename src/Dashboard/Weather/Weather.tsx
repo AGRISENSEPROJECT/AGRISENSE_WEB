@@ -7,7 +7,7 @@ import WeatherIcon from "@/components/WeatherIcon"
 import { useAuth } from "@/context/useAuth"
 import { useFarms } from "@/hooks/useFarms"
 import { useWeather } from "@/hooks/useWeather"
-import { getFarmingAdvisories, type Advisory } from "@/lib/weather"
+import { getFarmingAdvisories, farmPlaceCandidates, formatFarmPlace, type Advisory } from "@/lib/weather"
 
 const Weather = () => {
   const { user } = useAuth()
@@ -25,11 +25,14 @@ const Weather = () => {
   }, [])
 
   const selectedFarm = farms.find((f) => f.id === farmId)
-  const place = selectedFarm
-    ? [selectedFarm.district, selectedFarm.province, selectedFarm.country].filter(Boolean).join(", ")
-    : undefined
+  const place = selectedFarm ? formatFarmPlace(selectedFarm) : undefined
 
-  const { weather, loading, error } = useWeather({ place, useGeolocation: !place })
+  const { weather, loading, error } = useWeather({
+    place,
+    placeCandidates: selectedFarm ? farmPlaceCandidates(selectedFarm) : undefined,
+    useGeolocation: true,
+    preferDevice: !place,
+  })
 
   const advisories = useMemo<Advisory[]>(
     () => (weather ? getFarmingAdvisories(weather) : []),
@@ -55,7 +58,9 @@ const Weather = () => {
   })
 
   const locationName = weather
-    ? [weather.location.name, weather.location.country].filter(Boolean).join(", ")
+    ? [weather.location.name, weather.location.admin1, weather.location.country]
+        .filter(Boolean)
+        .join(", ")
     : "Locating…"
 
   return (

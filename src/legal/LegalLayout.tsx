@@ -79,10 +79,10 @@ const LegalLayout = ({ title, lastUpdated, intro, sections, children }: LegalLay
           <div className="mt-10 border-t pt-6 text-sm text-gray-500">
             Questions? Contact us at{" "}
             <a
-              href="mailto:agrisenseproject@gmail.com"
+              href="mailto:irasubizasalyneslon@gmail.com"
               className="font-medium text-[#2C6E49] hover:underline"
             >
-              agrisenseproject@gmail.com
+              irasubizasalyneslon@gmail.com
             </a>
             .
           </div>

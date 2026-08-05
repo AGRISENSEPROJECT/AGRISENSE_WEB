@@ -85,7 +85,7 @@ const ForgotPassword: React.FC = () => {
       footer={
         <p className="text-sm text-gray-600">
           Remembered it?{" "}
-          <Link to="/auth/login" className="text-[#2C6E49] font-semibold hover:underline">
+          <Link to="/auth/login" className="font-semibold text-[#2C6E49] hover:underline">
             Sign in
           </Link>
         </p>

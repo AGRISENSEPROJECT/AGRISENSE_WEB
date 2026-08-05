@@ -11,6 +11,7 @@ import WeatherSection from './WeatherSection'
 import TestimonialCarousel from './Testimonies'
 import Waitlist from './Waitlist'
 import Footer from './Footer'
+import AppDownloadFab from '@/components/AppDownloadFab'
 import { useEffect } from 'react'
 
 const LandingPage = () => {
@@ -39,6 +40,7 @@ const LandingPage = () => {
       <div id="contact">
         <Footer />
       </div>
+      <AppDownloadFab />
     </div>
   )
 }
