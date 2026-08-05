@@ -58,48 +58,53 @@ const stats = [
   { value: "5", label: "Team members" },
 ];
 
+const DEFAULT_AVATAR = "/assets/team/default-avatar.svg";
+
 const team = [
   {
-    name: "Irasubiza Saly Nelson",
+    name: "IRASUBIZA SALY NELSON",
     role: "CEO",
     focus: "Founder & Chief Executive Officer",
     phone: "+250 798 863 223",
     email: "irasubizasalynelson@gmail.com",
-    initials: "IN",
+    photo: DEFAULT_AVATAR,
   },
   {
-    name: "Nkotanyi Prince Nziza",
+    name: "NKOTANYI PRINCE NZIZA",
     role: "CTO",
     focus: "DevOps & Backend",
     phone: "+250 796 334 656",
     email: "nzizaprince7@gmail.com",
-    initials: "PN",
+    photo: DEFAULT_AVATAR,
   },
   {
-    name: "Raphael Nibishaka",
+    name: "RAPHAEL NIBISHAKA",
     role: "Head of Engineering",
-    focus: "Full Stack Development",
+    focus: "Co-Founder & Full Stack Engineer",
     phone: "+250 792 672 810",
     email: "raphaelnibishaka@gmail.com",
-    initials: "RN",
+    photo: DEFAULT_AVATAR,
   },
   {
-    name: "Mpano Umuhoza Hope",
+    name: "IMPANO UMUHOZA HOPE",
     role: "CMO",
     focus: "Marketing & Growth",
     phone: "+250 781 375 716",
     email: "umuhozahope5@gmail.com",
-    initials: "MH",
+    photo: DEFAULT_AVATAR,
   },
   {
-    name: "Ibijuru Chance Regine",
+    name: "IBIJURU CHANCE REGINE",
     role: "CFO",
     focus: "Finance & Operations",
     phone: "",
     email: "",
-    initials: "CR",
+    photo: DEFAULT_AVATAR,
   },
 ];
+
+const leadership = team.slice(0, 3);
+const support = team.slice(3);
 
 const AboutPage = () => {
   const { to: ctaTo, label: ctaLabel } = useGetStarted();
@@ -161,12 +166,16 @@ const AboutPage = () => {
       {/* Our Story */}
       <section className="bg-[#f0f7f4] py-16 md:py-20">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 md:grid-cols-2 lg:gap-16">
-          <div className="relative">
+          <div className="relative mx-auto w-full max-w-md md:max-w-none">
             <div className="overflow-hidden rounded-2xl shadow-lg">
-              <img src={AboutUsImage} alt="AgriSense in the field" className="h-full w-full object-cover" />
+              <img
+                src={AboutUsImage}
+                alt="AgriSense in the field"
+                className="h-64 w-full object-cover object-center sm:h-72 md:h-80"
+              />
             </div>
-            <div className="absolute -bottom-6 -right-4 hidden rounded-2xl bg-[#2C6E49] p-5 text-white shadow-xl sm:block">
-              <p className="text-2xl font-bold">120</p>
+            <div className="absolute -bottom-5 -right-3 hidden rounded-xl bg-[#2C6E49] px-4 py-3 text-white shadow-lg sm:block">
+              <p className="text-xl font-bold">120</p>
               <p className="text-xs text-white/80">Hectares covered</p>
             </div>
           </div>
@@ -227,53 +236,31 @@ const AboutPage = () => {
       </section>
 
       {/* Team */}
-      <section className="mx-auto max-w-6xl px-6 py-16 md:py-20">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold text-gray-900">Our Team</h2>
-          <p className="mt-3 text-gray-600">
-            Five people building AgriSense for farmers across Rwanda.
-          </p>
-        </div>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {team.map((member) => (
-            <article
-              key={member.name}
-              className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
-            >
-              <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#2C6E49] text-sm font-bold text-white">
-                  {member.initials}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">{member.name}</h3>
-                  <p className="text-sm font-medium text-[#2C6E49]">{member.role}</p>
-                  <p className="text-xs text-gray-500">{member.focus}</p>
-                </div>
-              </div>
-              {(member.email || member.phone) && (
-                <div className="mt-4 space-y-2 border-t border-gray-100 pt-4 text-sm text-gray-600">
-                  {member.email && (
-                    <a
-                      href={`mailto:${member.email}`}
-                      className="flex items-center gap-2 hover:text-[#2C6E49]"
-                    >
-                      <Mail className="h-4 w-4 shrink-0 text-gray-400" />
-                      <span className="break-all">{member.email}</span>
-                    </a>
-                  )}
-                  {member.phone && (
-                    <a
-                      href={`tel:${member.phone.replace(/\s/g, "")}`}
-                      className="flex items-center gap-2 hover:text-[#2C6E49]"
-                    >
-                      <Phone className="h-4 w-4 shrink-0 text-gray-400" />
-                      {member.phone}
-                    </a>
-                  )}
-                </div>
-              )}
-            </article>
-          ))}
+      <section className="border-t border-gray-100 bg-[#f7faf8] py-16 md:py-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-semibold uppercase tracking-wide text-[#2C6E49]">
+              Leadership
+            </p>
+            <h2 className="mt-2 text-3xl font-bold text-gray-900">Our Team</h2>
+            <p className="mt-3 text-gray-600">
+              The people behind AgriSense — building practical tools for Rwandan farmers.
+            </p>
+          </div>
+
+          {/* Top row: CEO, CTO, Head of Engineering */}
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {leadership.map((member) => (
+              <TeamCard key={member.name} member={member} />
+            ))}
+          </div>
+
+          {/* Bottom row: CMO + CFO, centered */}
+          <div className="mx-auto mt-6 grid max-w-3xl gap-6 sm:grid-cols-2">
+            {support.map((member) => (
+              <TeamCard key={member.name} member={member} />
+            ))}
+          </div>
         </div>
       </section>
 
@@ -340,3 +327,63 @@ const AboutPage = () => {
 };
 
 export default AboutPage;
+
+type TeamMember = (typeof team)[number];
+
+function TeamCard({ member }: { member: TeamMember }) {
+  return (
+    <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+      <div className="flex flex-col items-center px-6 pb-6 pt-8 text-center">
+        <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-[#e8f0eb] bg-[#e8f0eb] shadow-sm">
+          <img
+            src={member.photo}
+            alt={member.name}
+            className="h-full w-full object-cover object-center"
+            loading="lazy"
+          />
+        </div>
+
+        <h3 className="mt-5 min-h-[2.5rem] text-sm font-bold uppercase leading-snug tracking-wide text-gray-900">
+          {member.name}
+        </h3>
+
+        <span className="mt-2 inline-flex items-center rounded-md bg-[#2C6E49] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+          {member.role}
+        </span>
+
+        <p className="mt-2 min-h-[1rem] text-xs text-gray-500">{member.focus}</p>
+      </div>
+
+      <div className="mt-auto border-t border-gray-100 bg-[#f9fbfa] px-5 py-4">
+        {member.email || member.phone ? (
+          <div className="space-y-2.5">
+            {member.email && (
+              <a
+                href={`mailto:${member.email}`}
+                className="flex items-center gap-2.5 text-sm text-gray-600 transition-colors hover:text-[#2C6E49]"
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-[#2C6E49] shadow-sm ring-1 ring-gray-100">
+                  <Mail className="h-3.5 w-3.5" />
+                </span>
+                <span className="min-w-0 truncate">{member.email}</span>
+              </a>
+            )}
+            {member.phone && (
+              <a
+                href={`tel:${member.phone.replace(/\s/g, "")}`}
+                className="flex items-center gap-2.5 text-sm text-gray-600 transition-colors hover:text-[#2C6E49]"
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-[#2C6E49] shadow-sm ring-1 ring-gray-100">
+                  <Phone className="h-3.5 w-3.5" />
+                </span>
+                <span>{member.phone}</span>
+              </a>
+            )}
+          </div>
+        ) : (
+          <p className="text-center text-xs text-gray-400">Contact details coming soon</p>
+        )}
+      </div>
+    </article>
+  );
+}
