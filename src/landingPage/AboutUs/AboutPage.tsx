@@ -12,6 +12,8 @@ import {
   ShieldCheck,
   Lightbulb,
   ArrowRight,
+  Mail,
+  Phone,
 } from "lucide-react";
 import Navbar from "../Navbar/Navbar";
 import Footer from "../Footer";
@@ -53,7 +55,50 @@ const stats = [
   { value: "60+", label: "Farmers onboarded" },
   { value: "120", label: "Hectares covered" },
   { value: "5+", label: "Suppliers connected" },
-  { value: "5", label: "Districts reached" },
+  { value: "5", label: "Team members" },
+];
+
+const team = [
+  {
+    name: "Irasubiza Saly Nelson",
+    role: "CEO",
+    focus: "Founder & Chief Executive Officer",
+    phone: "+250 798 863 223",
+    email: "irasubizasalynelson@gmail.com",
+    initials: "IN",
+  },
+  {
+    name: "Nkotanyi Prince Nziza",
+    role: "CTO",
+    focus: "DevOps & Backend",
+    phone: "+250 796 334 656",
+    email: "nzizaprince7@gmail.com",
+    initials: "PN",
+  },
+  {
+    name: "Raphael Nibishaka",
+    role: "Head of Engineering",
+    focus: "Full Stack Development",
+    phone: "+250 792 672 810",
+    email: "raphaelnibishaka@gmail.com",
+    initials: "RN",
+  },
+  {
+    name: "Mpano Umuhoza Hope",
+    role: "CMO",
+    focus: "Marketing & Growth",
+    phone: "+250 781 375 716",
+    email: "umuhozahope5@gmail.com",
+    initials: "MH",
+  },
+  {
+    name: "Ibijuru Chance Regine",
+    role: "CFO",
+    focus: "Finance & Operations",
+    phone: "",
+    email: "",
+    initials: "CR",
+  },
 ];
 
 const AboutPage = () => {
@@ -177,6 +222,57 @@ const AboutPage = () => {
               <p className="text-3xl font-extrabold md:text-4xl">{s.value}</p>
               <p className="mt-1 text-sm text-white/80">{s.label}</p>
             </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Team */}
+      <section className="mx-auto max-w-6xl px-6 py-16 md:py-20">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl font-bold text-gray-900">Our Team</h2>
+          <p className="mt-3 text-gray-600">
+            Five people building AgriSense for farmers across Rwanda.
+          </p>
+        </div>
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {team.map((member) => (
+            <article
+              key={member.name}
+              className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#2C6E49] text-sm font-bold text-white">
+                  {member.initials}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">{member.name}</h3>
+                  <p className="text-sm font-medium text-[#2C6E49]">{member.role}</p>
+                  <p className="text-xs text-gray-500">{member.focus}</p>
+                </div>
+              </div>
+              {(member.email || member.phone) && (
+                <div className="mt-4 space-y-2 border-t border-gray-100 pt-4 text-sm text-gray-600">
+                  {member.email && (
+                    <a
+                      href={`mailto:${member.email}`}
+                      className="flex items-center gap-2 hover:text-[#2C6E49]"
+                    >
+                      <Mail className="h-4 w-4 shrink-0 text-gray-400" />
+                      <span className="break-all">{member.email}</span>
+                    </a>
+                  )}
+                  {member.phone && (
+                    <a
+                      href={`tel:${member.phone.replace(/\s/g, "")}`}
+                      className="flex items-center gap-2 hover:text-[#2C6E49]"
+                    >
+                      <Phone className="h-4 w-4 shrink-0 text-gray-400" />
+                      {member.phone}
+                    </a>
+                  )}
+                </div>
+              )}
+            </article>
           ))}
         </div>
       </section>
