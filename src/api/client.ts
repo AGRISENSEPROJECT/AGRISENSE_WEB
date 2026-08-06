@@ -154,12 +154,36 @@ function extractMessage(data: unknown, fallback: string): string {
   if (data && typeof data === "object") {
     const msg = (data as Record<string, unknown>).message;
     if (Array.isArray(msg)) return msg.join(", ");
-    if (typeof msg === "string") return msg;
+    if (typeof msg === "string") return sanitizeServerMessage(msg, fallback);
     const err = (data as Record<string, unknown>).error;
-    if (typeof err === "string") return err;
+    if (typeof err === "string") return sanitizeServerMessage(err, fallback);
   }
-  if (typeof data === "string" && data) return data;
+  if (typeof data === "string" && data) return sanitizeServerMessage(data, fallback);
   return fallback;
+}
+
+function sanitizeServerMessage(message: string, fallback: string): string {
+  const trimmed = message.trim();
+  if (!trimmed) return fallback;
+
+  // Reverse proxy / backend outages can return full HTML pages.
+  if (
+    /<(?:!doctype|html|body|head|div|script|style)[\s>]/i.test(trimmed) ||
+    /<\/(?:html|body|div)>/i.test(trimmed)
+  ) {
+    return "The server is temporarily unavailable. Please try again in a moment.";
+  }
+
+  // Avoid surfacing raw upstream/server noise to users.
+  if (
+    /(bad gateway|gateway timeout|service unavailable|nginx|apache|upstream|ECONNREFUSED)/i.test(
+      trimmed,
+    )
+  ) {
+    return "The server is temporarily unavailable. Please try again in a moment.";
+  }
+
+  return trimmed;
 }
 
 // De-duplicate concurrent refresh calls.
@@ -215,17 +239,29 @@ async function doRequest<T>(path: string, options: RequestOptions): Promise<T> {
     if (token) headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(buildUrl(path), {
-    method,
-    headers,
-    signal,
-    body:
-      body === undefined
-        ? undefined
-        : isFormData
-          ? (body as FormData)
-          : JSON.stringify(body),
-  });
+  let res: Response;
+  try {
+    res = await fetch(buildUrl(path), {
+      method,
+      headers,
+      signal,
+      body:
+        body === undefined
+          ? undefined
+          : isFormData
+            ? (body as FormData)
+            : JSON.stringify(body),
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw error;
+    }
+    throw new ApiError(
+      "Unable to reach the server. Please check your connection and try again.",
+      0,
+      null,
+    );
+  }
 
   // Attempt a single refresh-and-retry on 401.
   if (res.status === 401 && auth && !skipRefresh) {
@@ -241,7 +277,12 @@ async function doRequest<T>(path: string, options: RequestOptions): Promise<T> {
 
   if (!res.ok) {
     throw new ApiError(
-      extractMessage(data, `Request failed with status ${res.status}`),
+      extractMessage(
+        data,
+        res.status >= 500
+          ? "The server is temporarily unavailable. Please try again in a moment."
+          : `Request failed with status ${res.status}`,
+      ),
       res.status,
       data,
     );
