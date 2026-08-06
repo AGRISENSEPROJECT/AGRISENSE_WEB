@@ -21,20 +21,27 @@ export type PredictionSource = "manual" | "image";
 export interface AuthUser {
   id: string;
   email: string;
-  username: string;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
   isEmailVerified?: boolean;
   provider?: string;
   phoneNumber?: string;
   profileImage?: string | null;
   farmsCount?: number;
   hasFarm?: boolean;
+  nationalId?: string;
+  role?: string;
+  status?: string;
   createdAt?: string;
   farm?: Farm | null;
 }
 
 export interface RegisterDto {
   email: string;
-  username: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
   password: string;
 }
 
@@ -44,7 +51,8 @@ export interface RegisterResponse {
 }
 
 export interface LoginDto {
-  email: string;
+  email?: string;
+  phoneNumber?: string;
   password: string;
 }
 
@@ -81,8 +89,29 @@ export interface ResetPasswordDto {
 }
 
 export interface UpdateProfileDto {
+  firstName?: string;
+  lastName?: string;
   username?: string;
   phoneNumber?: string;
+}
+
+export interface IdentityVerificationDto {
+  nationalId: string;
+  documentType: "NATIONAL_ID" | string;
+  idImageUrl?: string;
+}
+
+export interface OnboardingFarmDto {
+  name: string;
+  province: string;
+  district: string;
+  sector: string;
+  cell: string;
+  village: string;
+  size: number;
+  soilType: SoilType | string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface ChangePasswordDto {
@@ -121,6 +150,10 @@ export interface Farm {
   ownerName?: string;
   ownerPhone?: string;
   ownerEmail?: string;
+  latitude?: number;
+  longitude?: number;
+  isActive?: boolean;
+  isArchived?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -142,6 +175,41 @@ export interface CreateFarmDto {
 
 export type UpdateFarmDto = Partial<CreateFarmDto>;
 
+export type FarmCropStatus =
+  | "PLANNED"
+  | "PLANTED"
+  | "GROWING"
+  | "READY_FOR_HARVEST"
+  | "HARVESTED";
+
+export interface FarmCrop {
+  id: string;
+  cropType: string;
+  variety?: string;
+  plantingSeason?: string;
+  plantingDate?: string;
+  expectedHarvestDate?: string;
+  harvestSeason?: string;
+  status?: FarmCropStatus | string;
+  estimatedYield?: number;
+  areaPlanted?: number;
+  [key: string]: unknown;
+}
+
+export interface CreateFarmCropDto {
+  cropType: string;
+  variety?: string;
+  plantingSeason?: string;
+  plantingDate?: string;
+  expectedHarvestDate?: string;
+  harvestSeason?: string;
+  status?: FarmCropStatus | string;
+  estimatedYield?: number;
+  areaPlanted?: number;
+}
+
+export interface UpdateFarmCropDto extends Partial<CreateFarmCropDto> {}
+
 export interface FarmListResponse {
   count: number;
   farms: Farm[];
@@ -158,7 +226,9 @@ export interface CreateFarmResponse {
 
 export interface PostAuthor {
   id: string;
-  username: string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
 }
 
@@ -177,6 +247,7 @@ export interface PostComment {
 
 export interface CommunityPost {
   id: string;
+  title?: string;
   description: string;
   imageUrl?: string | null;
   author: PostAuthor;
@@ -187,12 +258,14 @@ export interface CommunityPost {
 }
 
 export interface CreatePostDto {
+  title?: string;
   description: string;
-  imageUrl?: string;
+  image?: File;
 }
 
 export interface CreateCommentDto {
   content: string;
+  parentId?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -263,4 +336,144 @@ export interface DashboardData {
   suggestions?: unknown[];
   runs?: PredictionRun[];
   [key: string]: unknown;
+}
+
+// ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+export interface NotificationItem {
+  id: string;
+  title?: string;
+  message?: string;
+  content?: string;
+  type?: string;
+  isRead?: boolean;
+  read?: boolean;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
+export interface NotificationListResponse extends PaginatedResponse<NotificationItem> {
+  notifications?: NotificationItem[];
+}
+
+// ---------------------------------------------------------------------------
+// Marketplace
+// ---------------------------------------------------------------------------
+
+export interface MarketplaceProduct {
+  id: string;
+  name: string;
+  description?: string;
+  price?: number;
+  unit?: string;
+  category?: string;
+  imageUrl?: string;
+  stock?: number;
+  supplier?: {
+    id?: string;
+    businessName?: string;
+    name?: string;
+  };
+  [key: string]: unknown;
+}
+
+export interface MarketplaceProductsResponse extends PaginatedResponse<MarketplaceProduct> {
+  products?: MarketplaceProduct[];
+}
+
+export interface MarketplaceOrder {
+  id: string;
+  status?: string;
+  quantity?: number;
+  totalAmount?: number;
+  notes?: string;
+  createdAt?: string;
+  product?: MarketplaceProduct;
+  [key: string]: unknown;
+}
+
+export interface MarketplaceOrdersResponse extends PaginatedResponse<MarketplaceOrder> {
+  orders?: MarketplaceOrder[];
+}
+
+export interface CreateMarketplaceOrderDto {
+  productId: string;
+  quantity: number;
+  notes?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Admin
+// ---------------------------------------------------------------------------
+
+export type AdminUserRole = "FARMER" | "SUPPLIER" | "ADMIN" | "NGO" | "GOVERNMENT";
+export type AdminUserStatus = "PENDING" | "ACTIVE" | "SUSPENDED" | "BANNED";
+
+export interface AdminUserSummary {
+  id: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  role?: AdminUserRole | string;
+  status?: AdminUserStatus | string;
+  createdAt?: string;
+  deletedAt?: string | null;
+  [key: string]: unknown;
+}
+
+export interface AdminUsersResponse extends PaginatedResponse<AdminUserSummary> {
+  users?: AdminUserSummary[];
+}
+
+export interface CreateAdminUserDto {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role: AdminUserRole;
+  phoneNumber?: string;
+  assignedRegions?: string[];
+}
+
+export interface AdminFarmStatistics {
+  totalFarms?: number;
+  averageFarmSize?: number;
+  activeFarms?: number;
+  archivedFarms?: number;
+  byProvince?: Array<{ name?: string; province?: string; value?: number; count?: number }>;
+  [key: string]: unknown;
+}
+
+export interface AdminReportItem {
+  id: string;
+  reason?: string;
+  description?: string;
+  status?: string;
+  postId?: string;
+  excerpt?: string;
+  createdAt?: string;
+  author?: PostAuthor;
+  [key: string]: unknown;
+}
+
+export interface AdminAuditLog {
+  id: string;
+  action?: string;
+  createdAt?: string;
+  actor?: PostAuthor | null;
+  targetUser?: AdminUserSummary | null;
+  metadata?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface ApprovalDto {
+  reason?: string;
+}
+
+export interface BroadcastDto {
+  title: string;
+  message: string;
 }

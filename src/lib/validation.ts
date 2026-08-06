@@ -10,6 +10,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const USERNAME_RE = /^[a-zA-Z0-9._-]{3,30}$/;
 // International-ish phone: optional +, 7-15 digits.
 const PHONE_RE = /^\+?[0-9]{7,15}$/;
+const RWANDA_NATIONAL_ID_RE = /^[0-9]{16}$/;
 
 /**
  * Trim and strip control characters / angle brackets to reduce the chance of
@@ -65,6 +66,14 @@ export function validatePassword(password: string, min = 8): ValidationResult {
   return { valid: true };
 }
 
+export function validateName(value: string, label: string): ValidationResult {
+  const cleaned = sanitizeSingleLine(value);
+  if (!cleaned) return { valid: false, message: `${label} is required.` };
+  if (cleaned.length < 2) return { valid: false, message: `${label} must be at least 2 characters.` };
+  if (cleaned.length > 60) return { valid: false, message: `${label} is too long.` };
+  return { valid: true };
+}
+
 export function validatePhone(phone: string): ValidationResult {
   const value = phone.trim();
   if (!value) return { valid: true }; // phone is optional
@@ -72,6 +81,29 @@ export function validatePhone(phone: string): ValidationResult {
     return { valid: false, message: "Enter a valid phone number (e.g. +250788123456)." };
   }
   return { valid: true };
+}
+
+export function validateRequiredPhone(phone: string): ValidationResult {
+  const value = phone.trim();
+  if (!value) return { valid: false, message: "Phone number is required." };
+  return validatePhone(value);
+}
+
+export function validateNationalId(value: string): ValidationResult {
+  const cleaned = value.replace(/\s+/g, "");
+  if (!cleaned) return { valid: false, message: "National ID is required." };
+  if (!RWANDA_NATIONAL_ID_RE.test(cleaned)) {
+    return { valid: false, message: "Enter a valid 16-digit national ID." };
+  }
+  return { valid: true };
+}
+
+export function validateLoginIdentifier(value: string): ValidationResult {
+  const cleaned = value.trim();
+  if (!cleaned) {
+    return { valid: false, message: "Email or phone number is required." };
+  }
+  return cleaned.includes("@") ? validateEmail(cleaned) : validatePhone(cleaned);
 }
 
 export function validateOtp(otp: string): ValidationResult {

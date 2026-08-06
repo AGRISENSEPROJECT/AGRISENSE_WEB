@@ -15,15 +15,15 @@ import { useAuth } from '@/context/useAuth';
 import {
   sanitizeSingleLine,
   validateEmail,
+  validateName,
   validatePassword,
   validatePhone,
-  validateUsername,
 } from '@/lib/validation';
 import { routes } from '@/lib/routes';
 
 const SOIL_TYPES: SoilType[] = ['clay', 'sandy', 'loamy', 'silty', 'peaty', 'chalky'];
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB per API docs
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 const emptyFarm: CreateFarmDto = {
   name: '',
@@ -107,7 +107,8 @@ function ProfileSection({
   user: ReturnType<typeof useAuth>['user'];
   refreshProfile: () => Promise<void>;
 }) {
-  const [username, setUsername] = useState(user?.username || '');
+  const [firstName, setFirstName] = useState(user?.firstName || '');
+  const [lastName, setLastName] = useState(user?.lastName || '');
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -115,7 +116,8 @@ function ProfileSection({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setUsername(user?.username || '');
+    setFirstName(user?.firstName || '');
+    setLastName(user?.lastName || '');
     setPhoneNumber(user?.phoneNumber || '');
   }, [user]);
 
@@ -124,9 +126,14 @@ function ProfileSection({
     setError(null);
     setMessage(null);
 
-    const usernameCheck = validateUsername(username);
-    if (!usernameCheck.valid) {
-      setError(usernameCheck.message || 'Invalid username.');
+    const firstNameCheck = validateName(firstName, 'First name');
+    if (!firstNameCheck.valid) {
+      setError(firstNameCheck.message || 'Invalid first name.');
+      return;
+    }
+    const lastNameCheck = validateName(lastName, 'Last name');
+    if (!lastNameCheck.valid) {
+      setError(lastNameCheck.message || 'Invalid last name.');
       return;
     }
     const phoneCheck = validatePhone(phoneNumber);
@@ -138,8 +145,9 @@ function ProfileSection({
     setSaving(true);
     try {
       await authService.updateProfile({
-        username: sanitizeSingleLine(username),
-        phoneNumber: phoneNumber.trim(),
+        firstName: sanitizeSingleLine(firstName),
+        lastName: sanitizeSingleLine(lastName),
+        phoneNumber: phoneNumber.trim() || undefined,
       });
       await refreshProfile();
       setMessage('Profile updated successfully.');
@@ -203,13 +211,23 @@ function ProfileSection({
         />
       </Field>
 
-      <Field label="Username">
-        <input
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="w-full h-11 border border-gray-300 rounded-md px-3 outline-none focus:border-[#2C6E49]"
-        />
-      </Field>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Field label="First Name">
+          <input
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            className="w-full h-11 border border-gray-300 rounded-md px-3 outline-none focus:border-[#2C6E49]"
+          />
+        </Field>
+
+        <Field label="Last Name">
+          <input
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            className="w-full h-11 border border-gray-300 rounded-md px-3 outline-none focus:border-[#2C6E49]"
+          />
+        </Field>
+      </div>
 
       <Field label="Phone Number">
         <input
@@ -314,6 +332,7 @@ function SecuritySection() {
 
 function FarmsSection() {
   const [farms, setFarms] = useState<Farm[]>([]);
+  const [archivedFarms, setArchivedFarms] = useState<Farm[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -324,8 +343,12 @@ function FarmsSection() {
     setLoading(true);
     setError(null);
     try {
-      const res = await farmService.getAll();
+      const [res, archivedRes] = await Promise.all([
+        farmService.getAll(),
+        farmService.getArchived().catch(() => ({ farms: [] as Farm[] })),
+      ]);
       setFarms(res.farms || []);
+      setArchivedFarms(archivedRes.farms || []);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to load farms.');
     } finally {
@@ -386,6 +409,33 @@ function FarmsSection() {
       await load();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to delete farm.');
+    }
+  };
+
+  const handleArchive = async (farmId: string) => {
+    try {
+      await farmService.archive(farmId);
+      await load();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to archive farm.');
+    }
+  };
+
+  const handleRestore = async (farmId: string) => {
+    try {
+      await farmService.restore(farmId);
+      await load();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to restore farm.');
+    }
+  };
+
+  const handleSetActive = async (farmId: string) => {
+    try {
+      await farmService.setActive(farmId);
+      await load();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to set active farm.');
     }
   };
 
@@ -493,6 +543,11 @@ function FarmsSection() {
                   <p className="text-sm text-gray-500 capitalize">
                     {farm.soilType} soil · {farm.size} acres
                   </p>
+                  {farm.isActive && (
+                    <span className="mt-2 inline-flex rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                      Active farm
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={() => handleDelete(farm.id)}
@@ -507,8 +562,46 @@ function FarmsSection() {
                   .filter(Boolean)
                   .join(', ')}
               </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  onClick={() => handleSetActive(farm.id)}
+                  className="rounded-md border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700"
+                >
+                  Set active
+                </button>
+                <button
+                  onClick={() => handleArchive(farm.id)}
+                  className="rounded-md border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700"
+                >
+                  Archive
+                </button>
+              </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {archivedFarms.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-base font-semibold text-gray-800">Archived Farms</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {archivedFarms.map((farm) => (
+              <div key={farm.id} className="bg-white border rounded-lg shadow-sm p-4">
+                <h4 className="font-semibold text-gray-800">{farm.name}</h4>
+                <p className="mt-1 text-sm text-gray-500">
+                  {[farm.village, farm.cell, farm.sector, farm.district, farm.province]
+                    .filter(Boolean)
+                    .join(', ')}
+                </p>
+                <button
+                  onClick={() => handleRestore(farm.id)}
+                  className="mt-3 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700"
+                >
+                  Restore
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

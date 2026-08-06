@@ -1,19 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User } from 'lucide-react';
+import { Lock, Mail, Phone, User } from 'lucide-react';
 import { ApiError, authService } from "@/api";
 import {
+  sanitizeText,
   sanitizeSingleLine,
   validateEmail,
+  validateName,
+  validateNationalId,
   validatePassword,
-  validateUsername,
+  validateRequiredPhone,
 } from "@/lib/validation";
 import AuthLayout from "./AuthLayout";
 import { Alert, PasswordField, SubmitButton, TextField } from "./form-fields";
 
+const PENDING_IDENTITY_KEY = "agrisense.pending_identity";
+
 interface FieldErrors {
-  username?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
+  phoneNumber?: string;
+  nationalId?: string;
   password?: string;
   confirm?: string;
   terms?: string;
@@ -30,8 +38,11 @@ const SignUp: React.FC = () => {
   const planState = (location.state as SignUpState | null) ?? {};
   const isPro = planState.plan === "pro";
 
-  const [username, setUsername] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [nationalId, setNationalId] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [terms, setTerms] = useState(false);
@@ -45,10 +56,16 @@ const SignUp: React.FC = () => {
 
   const validate = () => {
     const next: FieldErrors = {};
-    const u = validateUsername(username);
-    if (!u.valid) next.username = u.message;
+    const first = validateName(firstName, "First name");
+    if (!first.valid) next.firstName = first.message;
+    const last = validateName(lastName, "Last name");
+    if (!last.valid) next.lastName = last.message;
     const em = validateEmail(email);
     if (!em.valid) next.email = em.message;
+    const phone = validateRequiredPhone(phoneNumber);
+    if (!phone.valid) next.phoneNumber = phone.message;
+    const id = validateNationalId(nationalId);
+    if (!id.valid) next.nationalId = id.message;
     const pw = validatePassword(password);
     if (!pw.valid) next.password = pw.message;
     if (confirm !== password) next.confirm = "Passwords do not match.";
@@ -65,10 +82,19 @@ const SignUp: React.FC = () => {
     setLoading(true);
     try {
       await authService.register({
+        firstName: sanitizeSingleLine(firstName),
+        lastName: sanitizeSingleLine(lastName),
         email: email.trim(),
-        username: sanitizeSingleLine(username),
+        phoneNumber: phoneNumber.trim(),
         password,
       });
+      sessionStorage.setItem(
+        PENDING_IDENTITY_KEY,
+        JSON.stringify({
+          nationalId: sanitizeText(nationalId).replace(/\s+/g, ""),
+          documentType: "NATIONAL_ID",
+        }),
+      );
       navigate("/auth/verify-otp", {
         state: { email: email.trim(), plan: planState.plan, billing: planState.billing },
       });
@@ -101,17 +127,31 @@ const SignUp: React.FC = () => {
       <form className="space-y-4" onSubmit={handleSubmit} noValidate>
         {formError && <Alert type="error">{formError}</Alert>}
 
-        <TextField
-          id="username"
-          label="Username"
-          value={username}
-          onChange={setUsername}
-          placeholder="johndoe"
-          icon={<User className="h-5 w-5" />}
-          error={errors.username}
-          autoComplete="username"
-          required
-        />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <TextField
+            id="firstName"
+            label="First name"
+            value={firstName}
+            onChange={setFirstName}
+            placeholder="John"
+            icon={<User className="h-5 w-5" />}
+            error={errors.firstName}
+            autoComplete="given-name"
+            required
+          />
+
+          <TextField
+            id="lastName"
+            label="Last name"
+            value={lastName}
+            onChange={setLastName}
+            placeholder="Doe"
+            icon={<User className="h-5 w-5" />}
+            error={errors.lastName}
+            autoComplete="family-name"
+            required
+          />
+        </div>
 
         <TextField
           id="email"
@@ -123,6 +163,32 @@ const SignUp: React.FC = () => {
           icon={<Mail className="h-5 w-5" />}
           error={errors.email}
           autoComplete="email"
+          required
+        />
+
+        <TextField
+          id="phoneNumber"
+          label="Phone number"
+          value={phoneNumber}
+          onChange={setPhoneNumber}
+          placeholder="+250788123456"
+          icon={<Phone className="h-5 w-5" />}
+          error={errors.phoneNumber}
+          autoComplete="tel"
+          inputMode="tel"
+          required
+        />
+
+        <TextField
+          id="nationalId"
+          label="National ID"
+          value={nationalId}
+          onChange={setNationalId}
+          placeholder="1199880012345678"
+          icon={<User className="h-5 w-5" />}
+          error={errors.nationalId}
+          inputMode="numeric"
+          maxLength={16}
           required
         />
 

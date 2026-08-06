@@ -3,13 +3,15 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Mail, Lock } from 'lucide-react';
 import { ApiError, authService } from "@/api";
 import { useAuth } from "@/context/useAuth";
-import { validateEmail } from "@/lib/validation";
+import { validateLoginIdentifier } from "@/lib/validation";
 import AuthLayout from "./AuthLayout";
 import { Alert, PasswordField, SubmitButton, TextField } from "./form-fields";
+import { getDefaultRouteForRole, routes } from "@/lib/routes";
 
 interface LocationState {
   from?: { pathname?: string };
   email?: string;
+  phoneNumber?: string;
   plan?: string;
   billing?: string;
 }
@@ -20,10 +22,10 @@ const SignIn: React.FC = () => {
   const { login } = useAuth();
   const state = location.state as LocationState | null;
 
-  const [email, setEmail] = useState(state?.email || "");
+  const [identifier, setIdentifier] = useState(state?.email || state?.phoneNumber || "");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ identifier?: string; password?: string }>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -31,12 +33,12 @@ const SignIn: React.FC = () => {
     document.title = "Sign In | AGRISENSE";
   }, []);
 
-  const from = state?.from?.pathname || "/app";
+  const from = state?.from?.pathname;
 
   const validate = () => {
-    const next: { email?: string; password?: string } = {};
-    const emailCheck = validateEmail(email);
-    if (!emailCheck.valid) next.email = emailCheck.message;
+    const next: { identifier?: string; password?: string } = {};
+    const loginCheck = validateLoginIdentifier(identifier);
+    if (!loginCheck.valid) next.identifier = loginCheck.message;
     if (!password) next.password = "Password is required.";
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -49,8 +51,16 @@ const SignIn: React.FC = () => {
 
     setLoading(true);
     try {
-      await login(email.trim(), password, remember);
-      navigate(from, {
+      const session = await login(identifier.trim(), password, remember);
+      const needsOnboarding =
+        Boolean(sessionStorage.getItem("agrisense.pending_identity")) ||
+        session.user.hasFarm === false;
+      const fallbackRoute = getDefaultRouteForRole(session.user.role);
+      const targetRoute =
+        needsOnboarding && (session.user.role || "").toUpperCase() === "FARMER"
+          ? routes.auth.farmerOnboarding
+          : from || fallbackRoute;
+      navigate(targetRoute, {
         replace: true,
         state:
           state?.plan || state?.billing
@@ -61,11 +71,15 @@ const SignIn: React.FC = () => {
       if (err instanceof ApiError) {
         if (err.status === 401 && /verif/i.test(err.message)) {
           try {
-            await authService.resendOtp(email.trim());
+            if (identifier.includes("@")) {
+              await authService.resendOtp({ email: identifier.trim() });
+            }
           } catch {
             /* ignore */
           }
-          navigate("/auth/verify-otp", { state: { email: email.trim() } });
+          navigate("/auth/verify-otp", {
+            state: identifier.includes("@") ? { email: identifier.trim() } : undefined,
+          });
           return;
         }
         setFormError(err.message);
@@ -94,15 +108,16 @@ const SignIn: React.FC = () => {
         {formError && <Alert type="error">{formError}</Alert>}
 
         <TextField
-          id="email"
-          label="Email address"
-          type="email"
-          value={email}
-          onChange={(v) => setEmail(v)}
-          placeholder="you@example.com"
+          id="identifier"
+          label="Email or phone number"
+          type="text"
+          value={identifier}
+          onChange={(v) => setIdentifier(v)}
+          placeholder="you@example.com or +250788123456"
           icon={<Mail className="h-5 w-5" />}
-          error={errors.email}
-          autoComplete="email"
+          error={errors.identifier}
+          autoComplete="username"
+          inputMode={identifier.includes("@") ? "email" : "tel"}
           required
         />
 

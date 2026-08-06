@@ -14,6 +14,7 @@ export const routes = {
     register: "/auth/register",
     verifyOtp: "/auth/verify-otp",
     forgotPassword: "/auth/forgot-password",
+    farmerOnboarding: "/auth/farmer-onboarding",
   },
 
   legal: {
@@ -23,6 +24,10 @@ export const routes = {
 
   app: {
     root: "/app",
+    marketplace: "/app/marketplace",
+    orders: "/app/orders",
+    notifications: "/app/notifications",
+    predictionHistory: "/app/predictions",
     cropCare: "/app/crop-care",
     soil: "/app/soil",
     weather: "/app/weather",
@@ -60,3 +65,18 @@ export const routes = {
     settings: "/ngo/settings",
   },
 } as const;
+
+export function getDefaultRouteForRole(role?: string | null): string {
+  switch ((role || "").toUpperCase()) {
+    case "ADMIN":
+      return routes.admin.root;
+    case "SUPPLIER":
+      return routes.supplier.root;
+    case "NGO":
+    case "GOVERNMENT":
+      return routes.ngo.root;
+    case "FARMER":
+    default:
+      return routes.app.root;
+  }
+}

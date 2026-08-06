@@ -8,10 +8,12 @@ import { useAuth } from "@/context/useAuth"
 import { useFarms } from "@/hooks/useFarms"
 import { useWeather } from "@/hooks/useWeather"
 import { getFarmingAdvisories, farmPlaceCandidates, formatFarmPlace, type Advisory } from "@/lib/weather"
+import { getUserDisplayName } from "@/lib/user"
 
 const Weather = () => {
   const { user } = useAuth()
   const { farms } = useFarms()
+  const displayName = getUserDisplayName(user)
   const [farmId, setFarmId] = useState<string>("")
   const [currentTime, setCurrentTime] = useState(new Date())
 
@@ -98,7 +100,7 @@ const Weather = () => {
               <div>
                 <h2 className="text-3xl font-bold mb-1">
                   {greeting}
-                  {user?.username ? `, ${user.username}` : ""}
+                  {displayName !== "Guest" ? `, ${displayName}` : ""}
                 </h2>
                 <div className="space-y-1">
                   <div className="text-4xl font-bold">{formattedTime}</div>

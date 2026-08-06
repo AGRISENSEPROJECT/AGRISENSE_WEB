@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/useAuth";
 import { Bell, Search, LogOut, Menu, X, type LucideIcon } from "lucide-react";
 import { UserAvatar } from "@/components/UserAvatar";
+import { getUserDisplayName } from "@/lib/user";
 
 export interface RoleNavLink {
   title: string;
@@ -40,7 +41,7 @@ const RoleLayout = ({
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const displayName = user?.username || "Guest";
+  const displayName = getUserDisplayName(user);
   const displayEmail = user?.email || "";
 
   const handleLogout = async () => {

@@ -16,6 +16,13 @@ const REFRESH_SKEW_MS = 60 * 1000;
 // Fallback refresh cadence if the token has no readable expiry (ms). 10 min.
 const FALLBACK_REFRESH_MS = 10 * 60 * 1000;
 
+function buildLoginPayload(identifier: string, password: string) {
+  const value = identifier.trim();
+  return value.includes("@")
+    ? { email: value, password }
+    : { phoneNumber: value, password };
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<AuthUser | null>(() =>
     tokenStore.getStoredUser<AuthUser>(),
@@ -101,9 +108,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [setUser]);
 
   const login = useCallback(
-    async (email: string, password: string, remember = false) => {
+    async (identifier: string, password: string, remember = false) => {
       tokenStore.setRemember(remember);
-      const res = await authService.login({ email, password });
+      const res = await authService.login(buildLoginPayload(identifier, password));
       tokenStore.setTokens(res.access_token, res.refresh_token);
       setUser(res.user);
       scheduleRefresh();
