@@ -9,6 +9,7 @@ export {
 } from "./client";
 export { authService } from "./services/auth";
 export { adminService } from "./services/admin";
+export { waitlistService } from "./services/waitlist";
 export { farmService } from "./services/farms";
 export { marketplaceService } from "./services/marketplace";
 export { notificationService } from "./services/notifications";

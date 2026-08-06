@@ -476,4 +476,68 @@ export interface ApprovalDto {
 export interface BroadcastDto {
   title: string;
   message: string;
+  /** Optional role audience; omit to broadcast to everyone. */
+  targetRole?: AdminUserRole | string;
+}
+
+// ---------------------------------------------------------------------------
+// Waitlist
+// ---------------------------------------------------------------------------
+
+export interface JoinWaitlistDto {
+  email: string;
+}
+
+export interface WaitlistEntry {
+  id: string;
+  email: string;
+  isActive?: boolean;
+  status?: string;
+  emailSentAt?: string | null;
+  createdAt?: string;
+  deactivatedAt?: string | null;
+  [key: string]: unknown;
+}
+
+export interface WaitlistStats {
+  total?: number;
+  active?: number;
+  inactive?: number;
+  emailsSent?: number;
+  [key: string]: unknown;
+}
+
+export interface WaitlistListResponse extends PaginatedResponse<WaitlistEntry> {
+  entries?: WaitlistEntry[];
+  waitlist?: WaitlistEntry[];
+}
+
+export interface CreateOrgAccountDto {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string;
+  businessName?: string;
+  organizationName?: string;
+  autoApprove?: boolean;
+}
+
+export type ModeratePostAction = "hide" | "unhide" | "delete";
+
+export interface ModeratePostDto {
+  action: ModeratePostAction;
+}
+
+export interface AdminOverviewStatistics {
+  totalUsers?: number;
+  activeUsers?: number;
+  suspendedUsers?: number;
+  bannedUsers?: number;
+  totalFarms?: number;
+  pendingSuppliers?: number;
+  pendingNgos?: number;
+  waitlistTotal?: number;
+  reportedPosts?: number;
+  [key: string]: unknown;
 }
