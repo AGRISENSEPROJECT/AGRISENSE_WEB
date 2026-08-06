@@ -485,12 +485,24 @@ export interface BroadcastDto {
 // ---------------------------------------------------------------------------
 
 export interface JoinWaitlistDto {
+  fullName: string;
   email: string;
+  phoneNumber?: string;
+  interest?: "FARMER" | "SUPPLIER" | "NGO" | "GOVERNMENT" | "OTHER";
+  organization?: string;
+  province?: string;
+  message?: string;
+  source?: string;
 }
 
 export interface WaitlistEntry {
   id: string;
   email: string;
+  fullName?: string;
+  phoneNumber?: string;
+  interest?: string;
+  organization?: string;
+  province?: string;
   isActive?: boolean;
   status?: string;
   emailSentAt?: string | null;

@@ -44,6 +44,7 @@ export const routes = {
     orders: "/supplier/orders",
     buyers: "/supplier/buyers",
     analytics: "/supplier/analytics",
+    notifications: "/supplier/notifications",
     settings: "/supplier/settings",
   },
 
@@ -54,6 +55,7 @@ export const routes = {
     waitlist: "/admin/waitlist",
     moderation: "/admin/moderation",
     analytics: "/admin/analytics",
+    notifications: "/admin/notifications",
     settings: "/admin/settings",
   },
 
@@ -63,6 +65,7 @@ export const routes = {
     regions: "/ngo/regions",
     farmers: "/ngo/farmers",
     reports: "/ngo/reports",
+    notifications: "/ngo/notifications",
     settings: "/ngo/settings",
   },
 } as const;

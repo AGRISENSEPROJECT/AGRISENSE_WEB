@@ -1,10 +1,9 @@
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useAuth } from "@/context/useAuth";
 import { UserAvatar } from "@/components/UserAvatar";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { getUserDisplayName } from "@/lib/user";
-import { notificationService } from "@/api";
 import { routes } from "@/lib/routes";
-import { Link } from "react-router-dom";
 
 interface NavbarProps {
   /** Optional left-side control (e.g. mobile menu button). */
@@ -13,23 +12,14 @@ interface NavbarProps {
 
 const Navbar = ({ menuButton }: NavbarProps) => {
   const { user } = useAuth();
-  const [unreadCount, setUnreadCount] = useState(0);
 
   const displayName = getUserDisplayName(user);
   const displayEmail = user?.email || "";
-
-  useEffect(() => {
-    notificationService
-      .getUnreadCount()
-      .then((res) => setUnreadCount(res.count || res.unreadCount || 0))
-      .catch(() => setUnreadCount(0));
-  }, []);
 
   return (
     <header className="flex w-full items-center gap-3 border-b bg-white px-3 py-2 shadow-sm sm:gap-4 sm:px-6">
       {menuButton}
 
-      {/* Search — hide on very small screens to free space */}
       <div className="hidden max-w-md flex-1 sm:block">
         <input
           type="search"
@@ -38,19 +28,8 @@ const Navbar = ({ menuButton }: NavbarProps) => {
         />
       </div>
 
-      <div className="ml-auto flex items-center gap-3 sm:gap-5">
-        <Link to={routes.app.notifications} className="relative shrink-0">
-          <img
-            src="/assets/Dashboardicons/notification.svg"
-            alt="Notification"
-            className="h-5 w-5 sm:h-6 sm:w-6"
-          />
-          {unreadCount > 0 && (
-            <span className="absolute -right-2 -top-2 min-w-5 rounded-full bg-[#377552] px-1 text-center text-[10px] font-semibold text-white">
-              {unreadCount}
-            </span>
-          )}
-        </Link>
+      <div className="ml-auto flex items-center gap-2 sm:gap-4">
+        <NotificationBell inboxHref={routes.app.notifications} accent="#377552" />
 
         <div className="flex items-center gap-2 border-l pl-3 sm:gap-3 sm:pl-4">
           <UserAvatar

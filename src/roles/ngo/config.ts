@@ -5,6 +5,7 @@ import {
   Users,
   FileBarChart,
   Settings,
+  Bell,
 } from "lucide-react";
 import type { RoleNavLink } from "../RoleLayout";
 
@@ -16,5 +17,6 @@ export const ngoLinks: RoleNavLink[] = [
   { title: "Regions", to: "/ngo/regions", icon: MapPinned },
   { title: "Farmers", to: "/ngo/farmers", icon: Users },
   { title: "Reports", to: "/ngo/reports", icon: FileBarChart },
+  { title: "Notifications", to: "/ngo/notifications", icon: Bell },
   { title: "Settings", to: "/ngo/settings", icon: Settings },
 ];

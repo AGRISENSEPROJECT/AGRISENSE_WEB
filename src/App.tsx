@@ -39,13 +39,18 @@ import AdminDashboard from './roles/admin/AdminDashboard'
 import AdminUsers from './roles/admin/AdminUsers'
 import AdminModeration from './roles/admin/AdminModeration'
 import AdminWaitlist from './roles/admin/AdminWaitlist'
+import AdminNotifications from './roles/admin/AdminNotifications'
 import { AdminSuppliers, AdminAnalytics, AdminSettings } from './roles/admin/AdminPlaceholders'
 
 // NGO / Government
 import NgoDashboard from './roles/ngo/NgoDashboard'
 import NgoPrograms from './roles/ngo/NgoPrograms'
 import NgoRegions from './roles/ngo/NgoRegions'
+import NgoNotifications from './roles/ngo/NgoNotifications'
 import { NgoFarmers, NgoReports, NgoSettings } from './roles/ngo/NgoPlaceholders'
+
+// Supplier portal extras
+import SupplierNotifications from './roles/supplier/SupplierNotifications'
 
 function App() {
   return (
@@ -90,6 +95,7 @@ function App() {
       <Route path={routes.supplier.orders} element={<ProtectedRoute allowRoles={['SUPPLIER']}><SupplierOrders /></ProtectedRoute>} />
       <Route path={routes.supplier.buyers} element={<ProtectedRoute allowRoles={['SUPPLIER']}><SupplierBuyers /></ProtectedRoute>} />
       <Route path={routes.supplier.analytics} element={<ProtectedRoute allowRoles={['SUPPLIER']}><SupplierAnalytics /></ProtectedRoute>} />
+      <Route path={routes.supplier.notifications} element={<ProtectedRoute allowRoles={['SUPPLIER']}><SupplierNotifications /></ProtectedRoute>} />
       <Route path={routes.supplier.settings} element={<ProtectedRoute allowRoles={['SUPPLIER']}><SupplierSettings /></ProtectedRoute>} />
 
       {/* Admin console */}
@@ -99,6 +105,7 @@ function App() {
       <Route path={routes.admin.waitlist} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminWaitlist /></ProtectedRoute>} />
       <Route path={routes.admin.moderation} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminModeration /></ProtectedRoute>} />
       <Route path={routes.admin.analytics} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminAnalytics /></ProtectedRoute>} />
+      <Route path={routes.admin.notifications} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminNotifications /></ProtectedRoute>} />
       <Route path={routes.admin.settings} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminSettings /></ProtectedRoute>} />
 
       {/* NGO / Government */}
@@ -107,6 +114,7 @@ function App() {
       <Route path={routes.ngo.regions} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoRegions /></ProtectedRoute>} />
       <Route path={routes.ngo.farmers} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoFarmers /></ProtectedRoute>} />
       <Route path={routes.ngo.reports} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoReports /></ProtectedRoute>} />
+      <Route path={routes.ngo.notifications} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoNotifications /></ProtectedRoute>} />
       <Route path={routes.ngo.settings} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoSettings /></ProtectedRoute>} />
 
       {/* Legacy redirects — keep old bookmarks working */}

@@ -110,6 +110,7 @@ const AdminWaitlist = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-left text-xs uppercase text-gray-400">
+                    <th className="pb-2 font-medium">Name</th>
                     <th className="pb-2 font-medium">Email</th>
                     <th className="pb-2 font-medium">Status</th>
                     <th className="pb-2 font-medium">Joined</th>
@@ -124,7 +125,10 @@ const AdminWaitlist = () => {
                       String(entry.status || "").toUpperCase() === "INACTIVE";
                     return (
                       <tr key={entry.id} className="border-b last:border-0">
-                        <td className="py-3 font-medium text-gray-800">{entry.email}</td>
+                        <td className="py-3 font-medium text-gray-800">
+                          {entry.fullName || "—"}
+                        </td>
+                        <td className="py-3 text-gray-600">{entry.email}</td>
                         <td className="py-3">
                           <Badge color={inactive ? "gray" : "green"}>
                             {inactive ? "Inactive" : "Active"}
