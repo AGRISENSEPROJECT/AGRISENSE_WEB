@@ -6,6 +6,7 @@ import AboutUs from './AboutUs/AboutUs'
 import HowDoWeWork from './HowDoWeWork/HowDoWeWork'
 import PricingPlan from './PricingPlan/PricingPlan'
 import Counter from './Counter/Counter'
+import Partners from './Partners'
 import SmartFarming from './smartFarmingBlog/smartFarming';
 import WeatherSection from './WeatherSection'
 import TestimonialCarousel from './Testimonies'
@@ -31,6 +32,7 @@ const LandingPage = () => {
       <HowDoWeWork />
       <PricingPlan />
       <Counter />
+      <Partners />
       <div id="blogs">
         <SmartFarming />
       </div>
