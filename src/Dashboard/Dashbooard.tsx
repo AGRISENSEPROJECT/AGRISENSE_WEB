@@ -13,6 +13,7 @@ import { useFarms } from "@/hooks/useFarms";
 import { useWeather } from "@/hooks/useWeather";
 import WeatherIcon from "@/components/WeatherIcon";
 import { farmPlaceCandidates, formatFarmPlace } from "@/lib/weather";
+import { getUserDisplayName } from "@/lib/user";
 
 interface Card{
   title:string
@@ -26,6 +27,7 @@ const Dashboard = () => {
   const { user } = useAuth();
   const { farms } = useFarms();
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const displayName = getUserDisplayName(user);
 
   const firstFarm = farms[0];
   const weatherPlace = firstFarm ? formatFarmPlace(firstFarm) : undefined;
@@ -110,7 +112,7 @@ const Dashboard = () => {
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-8">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-[#0B6E4F]">
-            Welcome back{user?.username ? `, ${user.username}` : ""} !
+            Welcome back{displayName !== "Guest" ? `, ${displayName}` : ""}!
           </h1>
           <p className="text-gray-500 text-sm">Here is an overview of your farms</p>
         </div>

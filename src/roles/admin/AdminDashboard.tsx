@@ -1,13 +1,7 @@
-import { useEffect } from "react";
-import { Users, Store, Building2, ShieldAlert, UserCheck } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Users, Store, Building2, Sprout, Loader2 } from "lucide-react";
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
   PieChart,
   Pie,
   Cell,
@@ -16,26 +10,129 @@ import {
 import RoleLayout from "../RoleLayout";
 import { StatCard, Panel, Badge } from "../ui";
 import { ADMIN_ACCENT, adminLinks } from "./config";
-import { adminUsers, adminModeration, adminUserGrowth, adminRoleSplit } from "./mock";
+import { adminService, ApiError, type AdminFarmStatistics, type AdminUserSummary } from "@/api";
+import { getUserDisplayName } from "@/lib/user";
 
 const roleColor: Record<string, "green" | "amber" | "red" | "blue" | "gray" | "purple"> = {
-  Farmer: "green",
-  Supplier: "blue",
+  FARMER: "green",
+  SUPPLIER: "blue",
   NGO: "purple",
-  Government: "amber",
-  Admin: "gray",
+  GOVERNMENT: "amber",
+  ADMIN: "gray",
 };
 
 const statusColor: Record<string, "green" | "amber" | "red"> = {
-  active: "green",
-  pending: "amber",
-  suspended: "red",
+  ACTIVE: "green",
+  PENDING: "amber",
+  SUSPENDED: "red",
+  BANNED: "red",
 };
 
+function getUserRows(data: unknown): AdminUserSummary[] {
+  if (!data || typeof data !== "object") return [];
+  const record = data as Record<string, unknown>;
+  const rows = record.users ?? record.items ?? record.data;
+  return Array.isArray(rows) ? (rows as AdminUserSummary[]) : [];
+}
+
+function getNumberValue(data: AdminFarmStatistics | null, keys: string[]): number {
+  if (!data) return 0;
+  for (const key of keys) {
+    const value = data[key];
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+  }
+  return 0;
+}
+
+function formatRole(role?: string) {
+  if (!role) return "Unknown";
+  return role.charAt(0) + role.slice(1).toLowerCase();
+}
+
+function formatStatus(status?: string) {
+  if (!status) return "Unknown";
+  return status.charAt(0) + status.slice(1).toLowerCase();
+}
+
 const AdminDashboard = () => {
+  const [users, setUsers] = useState<AdminUserSummary[]>([]);
+  const [usersTotal, setUsersTotal] = useState(0);
+  const [farmStats, setFarmStats] = useState<AdminFarmStatistics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     document.title = "Admin Dashboard | AGRISENSE";
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [usersRes, farmStatsRes] = await Promise.all([
+          adminService.getUsers({ page: 1, limit: 100 }),
+          adminService.getFarmStatistics(),
+        ]);
+        if (!active) return;
+
+        const rows = getUserRows(usersRes);
+        setUsers(rows);
+        setUsersTotal(
+          typeof usersRes.total === "number"
+            ? usersRes.total
+            : typeof usersRes.count === "number"
+              ? usersRes.count
+              : rows.length,
+        );
+        setFarmStats(farmStatsRes);
+      } catch (err) {
+        if (!active) return;
+        setError(err instanceof ApiError ? err.message : "Failed to load admin dashboard.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const summary = useMemo(() => {
+    const roleCounts = users.reduce<Record<string, number>>((acc, user) => {
+      const role = user.role || "UNKNOWN";
+      acc[role] = (acc[role] || 0) + 1;
+      return acc;
+    }, {});
+
+    const statusCounts = users.reduce<Record<string, number>>((acc, user) => {
+      const status = user.status || "UNKNOWN";
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {});
+
+    const roleSplit = Object.entries(roleCounts).map(([name, value], index) => ({
+      name: formatRole(name),
+      value,
+      color: ["#4338CA", "#6366F1", "#8B5CF6", "#C4B5FD", "#A5B4FC"][index % 5],
+    }));
+
+    return { roleCounts, statusCounts, roleSplit };
+  }, [users]);
+
+  const recentUsers = useMemo(
+    () =>
+      [...users]
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime(),
+        )
+        .slice(0, 8),
+    [users],
+  );
 
   return (
     <RoleLayout
@@ -45,36 +142,87 @@ const AdminDashboard = () => {
       title="Admin Overview"
       subtitle="Platform-wide users, growth and moderation."
     >
-      {/* KPIs */}
+      {error && (
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={Users} label="Total Users" value="1,720" delta="+22.4%" accent={ADMIN_ACCENT} />
-        <StatCard icon={Store} label="Suppliers" value={240} delta="+8 pending" accent={ADMIN_ACCENT} />
-        <StatCard icon={Building2} label="NGOs / Gov" value={300} delta="+3" accent={ADMIN_ACCENT} />
-        <StatCard icon={UserCheck} label="Active Today" value={412} delta="+5.1%" accent={ADMIN_ACCENT} />
+        <StatCard
+          icon={Users}
+          label="Total Users"
+          value={usersTotal || users.length}
+          delta={`${summary.statusCounts.ACTIVE || 0} active`}
+          accent={ADMIN_ACCENT}
+        />
+        <StatCard
+          icon={Store}
+          label="Suppliers"
+          value={summary.roleCounts.SUPPLIER || 0}
+          delta={`${summary.statusCounts.PENDING || 0} pending`}
+          accent={ADMIN_ACCENT}
+        />
+        <StatCard
+          icon={Building2}
+          label="NGOs / Gov"
+          value={(summary.roleCounts.NGO || 0) + (summary.roleCounts.GOVERNMENT || 0)}
+          delta={`${summary.roleCounts.ADMIN || 0} admins`}
+          accent={ADMIN_ACCENT}
+        />
+        <StatCard
+          icon={Sprout}
+          label="Total Farms"
+          value={getNumberValue(farmStats, ["totalFarms", "count", "total"])}
+          delta={`${getNumberValue(farmStats, ["activeFarms"])} active`}
+          accent={ADMIN_ACCENT}
+        />
       </div>
 
-      {/* Charts */}
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Panel title="User Growth" className="lg:col-span-2">
-          <div className="h-[280px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={adminUserGrowth} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                <YAxis axisLine={false} tickLine={false} />
-                <Tooltip />
-                <Line type="monotone" dataKey="users" stroke={ADMIN_ACCENT} strokeWidth={2.5} dot={false} activeDot={{ r: 6 }} />
-              </LineChart>
-            </ResponsiveContainer>
+        <Panel title="Farm Statistics" className="lg:col-span-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+              <p className="text-sm text-gray-500">Average Farm Size</p>
+              <p className="mt-2 text-2xl font-bold text-gray-900">
+                {getNumberValue(farmStats, ["averageFarmSize", "avgFarmSize"]).toFixed(1)}
+              </p>
+            </div>
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+              <p className="text-sm text-gray-500">Archived Farms</p>
+              <p className="mt-2 text-2xl font-bold text-gray-900">
+                {getNumberValue(farmStats, ["archivedFarms"])}
+              </p>
+            </div>
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+              <p className="text-sm text-gray-500">Active Accounts</p>
+              <p className="mt-2 text-2xl font-bold text-gray-900">
+                {summary.statusCounts.ACTIVE || 0}
+              </p>
+            </div>
           </div>
+          {loading && (
+            <div className="mt-4 flex items-center gap-2 text-sm text-gray-500">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading overview…
+            </div>
+          )}
         </Panel>
 
         <Panel title="Users by Role">
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={adminRoleSplit} cx="50%" cy="45%" innerRadius={55} outerRadius={85} paddingAngle={2} dataKey="value">
-                  {adminRoleSplit.map((e) => (
+                <Pie
+                  data={summary.roleSplit}
+                  cx="50%"
+                  cy="45%"
+                  innerRadius={55}
+                  outerRadius={85}
+                  paddingAngle={2}
+                  dataKey="value"
+                >
+                  {summary.roleSplit.map((e) => (
                     <Cell key={e.name} fill={e.color} />
                   ))}
                 </Pie>
@@ -85,9 +233,8 @@ const AdminDashboard = () => {
         </Panel>
       </div>
 
-      {/* Recent users + moderation queue */}
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Panel title="Recent Signups" className="lg:col-span-2">
+        <Panel title="Recent Users" className="lg:col-span-2">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -100,17 +247,23 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {adminUsers.map((u) => (
+                {recentUsers.map((u) => (
                   <tr key={u.id} className="border-b last:border-0">
-                    <td className="py-3 font-medium text-gray-800">{u.name}</td>
-                    <td className="py-3 text-gray-500">{u.email}</td>
+                    <td className="py-3 font-medium text-gray-800">{getUserDisplayName(u)}</td>
+                    <td className="py-3 text-gray-500">{u.email || "—"}</td>
                     <td className="py-3">
-                      <Badge color={roleColor[u.role]}>{u.role}</Badge>
+                      <Badge color={roleColor[u.role || ""] || "gray"}>
+                        {formatRole(u.role)}
+                      </Badge>
                     </td>
                     <td className="py-3">
-                      <Badge color={statusColor[u.status]}>{u.status}</Badge>
+                      <Badge color={statusColor[u.status || ""] || "amber"}>
+                        {formatStatus(u.status)}
+                      </Badge>
                     </td>
-                    <td className="py-3 text-gray-500">{u.joined}</td>
+                    <td className="py-3 text-gray-500">
+                      {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -118,21 +271,21 @@ const AdminDashboard = () => {
           </div>
         </Panel>
 
-        <Panel title="Moderation Queue">
-          <ul className="space-y-3">
-            {adminModeration.map((m) => (
-              <li key={m.id} className="rounded-lg border border-red-100 bg-red-50/60 p-3">
-                <div className="flex items-center gap-2">
-                  <ShieldAlert className="h-4 w-4 text-red-500" />
-                  <span className="text-sm font-semibold text-gray-800">{m.reason}</span>
-                </div>
-                <p className="mt-1 line-clamp-1 text-xs text-gray-600">"{m.excerpt}"</p>
-                <p className="mt-1 text-[11px] text-gray-400">
-                  {m.author} · {m.reportedAt}
-                </p>
-              </li>
+        <Panel title="Account Status">
+          <div className="space-y-3">
+            {Object.entries(summary.statusCounts).map(([status, count]) => (
+              <div
+                key={status}
+                className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-2"
+              >
+                <span className="text-sm font-medium text-gray-700">{formatStatus(status)}</span>
+                <Badge color={statusColor[status] || "amber"}>{count}</Badge>
+              </div>
             ))}
-          </ul>
+            {!Object.keys(summary.statusCounts).length && (
+              <div className="text-sm text-gray-500">No user status data available yet.</div>
+            )}
+          </div>
         </Panel>
       </div>
     </RoleLayout>

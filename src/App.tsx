@@ -9,6 +9,10 @@ import Community from './Dashboard/Community'
 import HelpandSupport from './Dashboard/HelpandSupport'
 import Settings from './Dashboard/Settings'
 import Subscription from './Dashboard/Subscription'
+import Notifications from './Dashboard/Notifications'
+import Marketplace from './Dashboard/Marketplace'
+import Orders from './Dashboard/Orders'
+import PredictionHistory from './Dashboard/PredictionHistory'
 import AboutPage from './landingPage/AboutUs/AboutPage'
 import ServicesPage from './landingPage/Popular-Services/ServicesPage'
 import BlogPage from './landingPage/smartFarmingBlog/BlogPage'
@@ -18,6 +22,7 @@ import SignUp from './auth/SignUp'
 import SignIn from './auth/SignIn'
 import VerifyOtp from './auth/VerifyOtp'
 import ForgotPassword from './auth/ForgotPassword'
+import FarmerOnboarding from './auth/FarmerOnboarding'
 import ProtectedRoute from './components/ProtectedRoute'
 import TermsOfService from './legal/TermsOfService'
 import PrivacyPolicy from './legal/PrivacyPolicy'
@@ -61,41 +66,46 @@ function App() {
       <Route path={routes.auth.register} element={<SignUp />} />
       <Route path={routes.auth.verifyOtp} element={<VerifyOtp />} />
       <Route path={routes.auth.forgotPassword} element={<ForgotPassword />} />
+      <Route path={routes.auth.farmerOnboarding} element={<ProtectedRoute allowRoles={['FARMER']}><FarmerOnboarding /></ProtectedRoute>} />
 
       {/* Farmer app */}
-      <Route path={routes.app.root} element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path={routes.app.cropCare} element={<ProtectedRoute><CropCare /></ProtectedRoute>} />
-      <Route path={routes.app.soil} element={<ProtectedRoute><SoilDetects /></ProtectedRoute>} />
-      <Route path={routes.app.weather} element={<ProtectedRoute><Weather /></ProtectedRoute>} />
-      <Route path={routes.app.analytics} element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-      <Route path={routes.app.community} element={<ProtectedRoute><Community /></ProtectedRoute>} />
-      <Route path={routes.app.help} element={<ProtectedRoute><HelpandSupport /></ProtectedRoute>} />
-      <Route path={routes.app.settings} element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-      <Route path={routes.app.subscription} element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
+      <Route path={routes.app.root} element={<ProtectedRoute allowRoles={['FARMER']}><Dashboard /></ProtectedRoute>} />
+      <Route path={routes.app.notifications} element={<ProtectedRoute allowRoles={['FARMER']}><Notifications /></ProtectedRoute>} />
+      <Route path={routes.app.marketplace} element={<ProtectedRoute allowRoles={['FARMER']}><Marketplace /></ProtectedRoute>} />
+      <Route path={routes.app.orders} element={<ProtectedRoute allowRoles={['FARMER']}><Orders /></ProtectedRoute>} />
+      <Route path={routes.app.predictionHistory} element={<ProtectedRoute allowRoles={['FARMER']}><PredictionHistory /></ProtectedRoute>} />
+      <Route path={routes.app.cropCare} element={<ProtectedRoute allowRoles={['FARMER']}><CropCare /></ProtectedRoute>} />
+      <Route path={routes.app.soil} element={<ProtectedRoute allowRoles={['FARMER']}><SoilDetects /></ProtectedRoute>} />
+      <Route path={routes.app.weather} element={<ProtectedRoute allowRoles={['FARMER']}><Weather /></ProtectedRoute>} />
+      <Route path={routes.app.analytics} element={<ProtectedRoute allowRoles={['FARMER']}><Analytics /></ProtectedRoute>} />
+      <Route path={routes.app.community} element={<ProtectedRoute allowRoles={['FARMER']}><Community /></ProtectedRoute>} />
+      <Route path={routes.app.help} element={<ProtectedRoute allowRoles={['FARMER']}><HelpandSupport /></ProtectedRoute>} />
+      <Route path={routes.app.settings} element={<ProtectedRoute allowRoles={['FARMER']}><Settings /></ProtectedRoute>} />
+      <Route path={routes.app.subscription} element={<ProtectedRoute allowRoles={['FARMER']}><Subscription /></ProtectedRoute>} />
 
       {/* Supplier portal */}
-      <Route path={routes.supplier.root} element={<ProtectedRoute><SupplierDashboard /></ProtectedRoute>} />
-      <Route path={routes.supplier.products} element={<ProtectedRoute><SupplierProducts /></ProtectedRoute>} />
-      <Route path={routes.supplier.orders} element={<ProtectedRoute><SupplierOrders /></ProtectedRoute>} />
-      <Route path={routes.supplier.buyers} element={<ProtectedRoute><SupplierBuyers /></ProtectedRoute>} />
-      <Route path={routes.supplier.analytics} element={<ProtectedRoute><SupplierAnalytics /></ProtectedRoute>} />
-      <Route path={routes.supplier.settings} element={<ProtectedRoute><SupplierSettings /></ProtectedRoute>} />
+      <Route path={routes.supplier.root} element={<ProtectedRoute allowRoles={['SUPPLIER']}><SupplierDashboard /></ProtectedRoute>} />
+      <Route path={routes.supplier.products} element={<ProtectedRoute allowRoles={['SUPPLIER']}><SupplierProducts /></ProtectedRoute>} />
+      <Route path={routes.supplier.orders} element={<ProtectedRoute allowRoles={['SUPPLIER']}><SupplierOrders /></ProtectedRoute>} />
+      <Route path={routes.supplier.buyers} element={<ProtectedRoute allowRoles={['SUPPLIER']}><SupplierBuyers /></ProtectedRoute>} />
+      <Route path={routes.supplier.analytics} element={<ProtectedRoute allowRoles={['SUPPLIER']}><SupplierAnalytics /></ProtectedRoute>} />
+      <Route path={routes.supplier.settings} element={<ProtectedRoute allowRoles={['SUPPLIER']}><SupplierSettings /></ProtectedRoute>} />
 
       {/* Admin console */}
-      <Route path={routes.admin.root} element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-      <Route path={routes.admin.users} element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
-      <Route path={routes.admin.suppliers} element={<ProtectedRoute><AdminSuppliers /></ProtectedRoute>} />
-      <Route path={routes.admin.moderation} element={<ProtectedRoute><AdminModeration /></ProtectedRoute>} />
-      <Route path={routes.admin.analytics} element={<ProtectedRoute><AdminAnalytics /></ProtectedRoute>} />
-      <Route path={routes.admin.settings} element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
+      <Route path={routes.admin.root} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
+      <Route path={routes.admin.users} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminUsers /></ProtectedRoute>} />
+      <Route path={routes.admin.suppliers} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminSuppliers /></ProtectedRoute>} />
+      <Route path={routes.admin.moderation} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminModeration /></ProtectedRoute>} />
+      <Route path={routes.admin.analytics} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminAnalytics /></ProtectedRoute>} />
+      <Route path={routes.admin.settings} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminSettings /></ProtectedRoute>} />
 
       {/* NGO / Government */}
-      <Route path={routes.ngo.root} element={<ProtectedRoute><NgoDashboard /></ProtectedRoute>} />
-      <Route path={routes.ngo.programs} element={<ProtectedRoute><NgoPrograms /></ProtectedRoute>} />
-      <Route path={routes.ngo.regions} element={<ProtectedRoute><NgoRegions /></ProtectedRoute>} />
-      <Route path={routes.ngo.farmers} element={<ProtectedRoute><NgoFarmers /></ProtectedRoute>} />
-      <Route path={routes.ngo.reports} element={<ProtectedRoute><NgoReports /></ProtectedRoute>} />
-      <Route path={routes.ngo.settings} element={<ProtectedRoute><NgoSettings /></ProtectedRoute>} />
+      <Route path={routes.ngo.root} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoDashboard /></ProtectedRoute>} />
+      <Route path={routes.ngo.programs} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoPrograms /></ProtectedRoute>} />
+      <Route path={routes.ngo.regions} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoRegions /></ProtectedRoute>} />
+      <Route path={routes.ngo.farmers} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoFarmers /></ProtectedRoute>} />
+      <Route path={routes.ngo.reports} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoReports /></ProtectedRoute>} />
+      <Route path={routes.ngo.settings} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoSettings /></ProtectedRoute>} />
 
       {/* Legacy redirects — keep old bookmarks working */}
       <Route path="/signin" element={<Navigate to={routes.auth.login} replace />} />

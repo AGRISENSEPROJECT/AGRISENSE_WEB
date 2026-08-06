@@ -8,6 +8,9 @@ export {
   refreshSession,
 } from "./client";
 export { authService } from "./services/auth";
+export { adminService } from "./services/admin";
 export { farmService } from "./services/farms";
+export { marketplaceService } from "./services/marketplace";
+export { notificationService } from "./services/notifications";
 export { communityService } from "./services/community";
 export { predictionService } from "./services/predictions";

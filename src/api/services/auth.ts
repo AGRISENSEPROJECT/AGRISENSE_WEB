@@ -2,9 +2,11 @@ import { api, tokenStore } from "../client";
 import type {
   ChangePasswordDto,
   ForgotPasswordDto,
+  IdentityVerificationDto,
   LoginDto,
   LoginResponse,
   MessageResponse,
+  OnboardingFarmDto,
   RegisterDto,
   RegisterResponse,
   ResetPasswordDto,
@@ -25,8 +27,12 @@ export const authService = {
   verifyOtp: (dto: VerifyOtpDto) =>
     api.post<VerifyOtpResponse>("/auth/verify-otp", dto, { auth: false }),
 
-  resendOtp: (email: string) =>
-    api.post<MessageResponse>("/auth/resend-otp", { email }, { auth: false }),
+  resendOtp: (payload: string | { email?: string; userId?: string }) =>
+    api.post<MessageResponse>(
+      "/auth/resend-otp",
+      typeof payload === "string" ? { email: payload } : payload,
+      { auth: false },
+    ),
 
   forgotPassword: (dto: ForgotPasswordDto) =>
     api.post<MessageResponse>("/auth/forgot-password", dto, { auth: false }),
@@ -36,6 +42,15 @@ export const authService = {
 
   resetPassword: (dto: ResetPasswordDto) =>
     api.post<MessageResponse>("/auth/reset-password", dto, { auth: false }),
+
+  verifyIdentity: (dto: IdentityVerificationDto) =>
+    api.post<MessageResponse>("/auth/onboarding/identity", dto),
+
+  getOnboardingStatus: () =>
+    api.get<Record<string, unknown>>("/auth/onboarding/status"),
+
+  completeOnboardingFarm: (dto: OnboardingFarmDto) =>
+    api.post<MessageResponse>("/auth/onboarding/farm", dto),
 
   getProfile: () => api.get<{ user: AuthUser }>("/auth/profile"),
 

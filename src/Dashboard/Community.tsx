@@ -7,10 +7,19 @@ import {
   type CommunityPost,
 } from '@/api';
 import { useAuth } from '@/context/useAuth';
-import { isSafeUrl, sanitizeText } from '@/lib/validation';
+import { sanitizeText } from '@/lib/validation';
+import { getUserDisplayName } from '@/lib/user';
 
 const MAX_POST_LENGTH = 2000;
 const MAX_COMMENT_LENGTH = 500;
+
+function getPostsFromResponse(data: unknown): CommunityPost[] {
+  if (Array.isArray(data)) return data;
+  if (!data || typeof data !== 'object') return [];
+  const record = data as Record<string, unknown>;
+  const items = record.posts ?? record.items ?? record.data;
+  return Array.isArray(items) ? (items as CommunityPost[]) : [];
+}
 
 const Community = () => {
   const { user } = useAuth();
@@ -19,7 +28,8 @@ const Community = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [newPost, setNewPost] = useState('');
-  const [newImageUrl, setNewImageUrl] = useState('');
+  const [newTitle, setNewTitle] = useState('');
+  const [newImage, setNewImage] = useState<File | null>(null);
   const [posting, setPosting] = useState(false);
 
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
@@ -34,7 +44,7 @@ const Community = () => {
     setError(null);
     try {
       const data = await communityService.getPosts();
-      setPosts(Array.isArray(data) ? data : []);
+      setPosts(getPostsFromResponse(data));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to load posts.');
     } finally {
@@ -51,18 +61,13 @@ const Community = () => {
     const description = sanitizeText(newPost).slice(0, MAX_POST_LENGTH);
     if (!description) return;
 
-    const imageUrl = newImageUrl.trim();
-    if (imageUrl && !isSafeUrl(imageUrl)) {
-      setError('Please enter a valid http(s) image URL.');
-      return;
-    }
-
     setPosting(true);
     setError(null);
     try {
       const created = await communityService.createPost({
+        title: sanitizeText(newTitle).slice(0, 120) || undefined,
         description,
-        imageUrl: imageUrl || undefined,
+        image: newImage || undefined,
       });
       // The create response sometimes omits a populated author. Since we know
       // the current user authored it, fill it in so it never shows "Unknown".
@@ -71,15 +76,22 @@ const Community = () => {
         author: created.author?.username
           ? created.author
           : user
-            ? { id: user.id, username: user.username, email: user.email }
+            ? {
+                id: user.id,
+                username: user.username,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+              }
             : created.author,
         likes: created.likes ?? [],
         comments: created.comments ?? [],
         createdAt: created.createdAt ?? new Date().toISOString(),
       };
       setPosts((prev) => [withAuthor, ...prev]);
+      setNewTitle('');
       setNewPost('');
-      setNewImageUrl('');
+      setNewImage(null);
       // Reload in the background to reconcile with the server's canonical data.
       loadPosts();
     } catch (err) {
@@ -94,9 +106,7 @@ const Community = () => {
 
   // Resolve a friendly author name even when the API omits the author object.
   const authorName = (post: CommunityPost) => {
-    if (post.author?.username) return post.author.username;
-    if (user && post.author?.id === user.id) return user.username;
-    return 'Community member';
+    return getUserDisplayName(post.author) || getUserDisplayName(user) || 'Community member';
   };
 
   const handleLike = async (post: CommunityPost) => {
@@ -144,6 +154,13 @@ const Community = () => {
             onSubmit={handleCreatePost}
             className="bg-white border rounded-lg shadow-sm p-4 space-y-3"
           >
+            <input
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="Post title"
+              maxLength={120}
+              className="w-full border rounded-md p-3 text-sm outline-none focus:border-[#2C6E49]"
+            />
             <textarea
               value={newPost}
               onChange={(e) => setNewPost(e.target.value)}
@@ -152,13 +169,7 @@ const Community = () => {
               maxLength={MAX_POST_LENGTH}
               className="w-full border rounded-md p-3 text-sm outline-none focus:border-[#2C6E49] resize-none"
             />
-            <input
-              type="url"
-              value={newImageUrl}
-              onChange={(e) => setNewImageUrl(e.target.value)}
-              placeholder="Optional image URL"
-              className="w-full border rounded-md p-2 text-sm outline-none focus:border-[#2C6E49]"
-            />
+            <input type="file" accept="image/*" onChange={(e) => setNewImage(e.target.files?.[0] || null)} />
             <div className="flex justify-end">
               <button
                 type="submit"
@@ -194,9 +205,10 @@ const Community = () => {
                     </div>
                   </div>
 
+                  {post.title && <h2 className="mb-2 text-base font-semibold text-gray-900">{post.title}</h2>}
                   <p className="text-sm text-gray-800 whitespace-pre-wrap mb-3">{post.description}</p>
 
-                  {post.imageUrl && isSafeUrl(post.imageUrl) && (
+                  {post.imageUrl && (
                     <img
                       src={post.imageUrl}
                       alt="Post"
@@ -219,6 +231,36 @@ const Community = () => {
                       <MessageCircle className="h-4 w-4" />
                       {post.comments?.length || 0}
                     </span>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await communityService.reportPost(post.id, {
+                            reason: "OTHER",
+                            description: "Reported from web community page.",
+                          });
+                        } catch (err) {
+                          setError(err instanceof ApiError ? err.message : 'Failed to report post.');
+                        }
+                      }}
+                      className="hover:text-amber-600"
+                    >
+                      Report
+                    </button>
+                    {user?.id === post.author?.id && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            await communityService.deletePost(post.id);
+                            await loadPosts();
+                          } catch (err) {
+                            setError(err instanceof ApiError ? err.message : 'Failed to delete post.');
+                          }
+                        }}
+                        className="hover:text-red-600"
+                      >
+                        Delete
+                      </button>
+                    )}
                   </div>
 
                   {/* Comments */}
@@ -227,8 +269,8 @@ const Community = () => {
                       {post.comments.map((c) => (
                         <div key={c.id} className="bg-gray-50 rounded-md px-3 py-2">
                           <p className="text-xs font-semibold text-gray-700">
-                            {c.author?.username ||
-                              (user && c.author?.id === user.id ? user.username : 'Community member')}
+                            {getUserDisplayName(c.author) ||
+                              (user && c.author?.id === user.id ? getUserDisplayName(user) : 'Community member')}
                           </p>
                           <p className="text-sm text-gray-700">{c.content}</p>
                         </div>
