@@ -6,6 +6,7 @@ import {
   BarChart3,
   Settings,
   Mail,
+  Bell,
 } from "lucide-react";
 import type { RoleNavLink } from "../RoleLayout";
 
@@ -18,5 +19,6 @@ export const adminLinks: RoleNavLink[] = [
   { title: "Waitlist", to: "/admin/waitlist", icon: Mail },
   { title: "Moderation", to: "/admin/moderation", icon: ShieldCheck },
   { title: "Analytics", to: "/admin/analytics", icon: BarChart3 },
+  { title: "Notifications", to: "/admin/notifications", icon: Bell },
   { title: "Settings", to: "/admin/settings", icon: Settings },
 ];
