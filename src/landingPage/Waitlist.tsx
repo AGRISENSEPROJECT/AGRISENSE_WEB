@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { ArrowRight, CheckCircle2, Sparkles, Users } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2, Sparkles, Users } from "lucide-react";
+import { ApiError, waitlistService } from "@/api";
 import { validateEmail } from "@/lib/validation";
-
-const WAITLIST_KEY = "agrisense.waitlist";
 
 const PERKS = [
   "Early access to new AI features",
@@ -14,8 +13,9 @@ const Waitlist = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -25,29 +25,28 @@ const Waitlist = () => {
       return;
     }
 
-    // MVP capture: persist locally so the campaign works today.
-    // TODO: POST to a backend waitlist endpoint when available.
+    setLoading(true);
     try {
-      const existing: string[] = JSON.parse(localStorage.getItem(WAITLIST_KEY) || "[]");
-      if (!existing.includes(email.trim().toLowerCase())) {
-        existing.push(email.trim().toLowerCase());
-        localStorage.setItem(WAITLIST_KEY, JSON.stringify(existing));
-      }
-    } catch {
-      /* ignore storage errors */
+      await waitlistService.join({ email: email.trim().toLowerCase() });
+      setSubmitted(true);
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Could not join the waitlist. Please try again.",
+      );
+    } finally {
+      setLoading(false);
     }
-    setSubmitted(true);
   };
 
   return (
     <section id="waitlist" className="px-4 sm:px-6 md:px-12 lg:px-20 py-16">
       <div className="relative max-w-6xl mx-auto overflow-hidden rounded-3xl bg-gradient-to-br from-[#0B6E4F] via-[#2C6E49] to-[#14532d] px-6 sm:px-10 md:px-16 py-12 md:py-16 text-white shadow-2xl">
-        {/* Decorative blobs */}
         <div className="absolute -top-16 -right-10 h-72 w-72 rounded-full bg-lime-300/15 blur-3xl" />
         <div className="absolute -bottom-20 -left-10 h-72 w-72 rounded-full bg-emerald-300/10 blur-3xl" />
 
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-          {/* Copy */}
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 backdrop-blur-sm">
               <Sparkles className="h-4 w-4 text-lime-300" />
@@ -59,8 +58,8 @@ const Waitlist = () => {
               <span className="text-lime-300">AgriSense</span>
             </h2>
             <p className="mt-4 text-white/85 text-lg max-w-md">
-              Join our early-access waitlist and get exclusive perks when we roll
-              out new AI-powered tools to your region.
+              Join our early-access waitlist and get a welcome email with features,
+              benefits, and next steps.
             </p>
 
             <ul className="mt-6 space-y-2.5">
@@ -73,7 +72,6 @@ const Waitlist = () => {
             </ul>
           </div>
 
-          {/* Form card */}
           <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xl text-gray-800">
             {submitted ? (
               <div className="text-center py-6">
@@ -82,9 +80,9 @@ const Waitlist = () => {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">You&apos;re on the list</h3>
                 <p className="text-gray-500 mt-2">
-                  Thanks for joining. We&apos;ll email{" "}
-                  <span className="font-semibold text-gray-700">{email}</span> with early-access
-                  updates.
+                  Check{" "}
+                  <span className="font-semibold text-gray-700">{email}</span> for your
+                  AgriSense welcome email.
                 </p>
               </div>
             ) : (
@@ -100,7 +98,8 @@ const Waitlist = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    className={`w-full h-12 rounded-xl border bg-gray-50/60 px-4 outline-none transition-all focus:bg-white focus:ring-2 ${
+                    disabled={loading}
+                    className={`w-full h-12 rounded-xl border bg-gray-50/60 px-4 outline-none transition-all focus:bg-white focus:ring-2 disabled:opacity-60 ${
                       error
                         ? "border-red-400 focus:border-red-400 focus:ring-red-100"
                         : "border-gray-200 focus:border-[#2C6E49] focus:ring-green-100"
@@ -109,10 +108,20 @@ const Waitlist = () => {
                   {error && <p className="text-xs text-red-600">{error}</p>}
                   <button
                     type="submit"
-                    className="group w-full h-12 rounded-xl bg-[#2C6E49] hover:bg-[#23583a] text-white font-bold transition-all flex items-center justify-center gap-2"
+                    disabled={loading}
+                    className="group w-full h-12 rounded-xl bg-[#2C6E49] hover:bg-[#23583a] text-white font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-60"
                   >
-                    Join the Waitlist
-                    <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Joining…
+                      </>
+                    ) : (
+                      <>
+                        Join the Waitlist
+                        <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                      </>
+                    )}
                   </button>
                 </form>
 

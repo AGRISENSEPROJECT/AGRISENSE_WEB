@@ -94,26 +94,26 @@ const SignIn: React.FC = () => {
   return (
     <AuthLayout
       title="Welcome back"
-      subtitle="Sign in to continue to AgriSense"
+      subtitle="Sign in with email or phone"
       footer={
         <p className="text-sm text-gray-600">
           Don&apos;t have an account?{" "}
-          <Link to="/auth/register" className="font-semibold text-[#2C6E49] hover:underline">
-            Sign up
+          <Link to="/auth/register" className="font-semibold text-[#0B6E4F] hover:underline">
+            Create one
           </Link>
         </p>
       }
     >
-      <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+      <form className="space-y-3.5" onSubmit={handleSubmit} noValidate>
         {formError && <Alert type="error">{formError}</Alert>}
 
         <TextField
           id="identifier"
-          label="Email or phone number"
+          label="Email or phone"
           type="text"
           value={identifier}
           onChange={(v) => setIdentifier(v)}
-          placeholder="you@example.com or +250788123456"
+          placeholder="you@email.com"
           icon={<Mail className="h-5 w-5" />}
           error={errors.identifier}
           autoComplete="username"
@@ -126,7 +126,7 @@ const SignIn: React.FC = () => {
           label="Password"
           value={password}
           onChange={(v) => setPassword(v)}
-          placeholder="Your password"
+          placeholder="Enter password"
           icon={<Lock className="h-5 w-5" />}
           error={errors.password}
           autoComplete="current-password"
@@ -134,26 +134,28 @@ const SignIn: React.FC = () => {
         />
 
         <div className="flex items-center justify-between gap-3">
-          <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-gray-600">
+          <label className="flex min-h-9 cursor-pointer select-none items-center gap-2 text-sm text-gray-600">
             <input
               type="checkbox"
               checked={remember}
               onChange={(e) => setRemember(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-[#2C6E49] focus:ring-[#2C6E49]"
+              className="h-4 w-4 rounded border-gray-300 text-[#0B6E4F] focus:ring-[#0B6E4F]"
             />
             Remember me
           </label>
           <Link
             to="/auth/forgot-password"
-            className="text-sm font-semibold text-[#2C6E49] hover:underline"
+            className="inline-flex min-h-9 items-center text-sm font-semibold text-[#0B6E4F] hover:underline"
           >
             Forgot?
           </Link>
         </div>
 
-        <SubmitButton loading={loading}>
-          {loading ? "Signing in…" : "Sign in"}
-        </SubmitButton>
+        <div className="pt-1">
+          <SubmitButton loading={loading}>
+            {loading ? "Signing in…" : "Sign in"}
+          </SubmitButton>
+        </div>
       </form>
     </AuthLayout>
   );

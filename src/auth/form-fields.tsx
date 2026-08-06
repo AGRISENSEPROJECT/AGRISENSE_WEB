@@ -53,9 +53,9 @@ export function TextField({
           maxLength={maxLength}
           required={required}
           aria-invalid={!!error}
-          className={`w-full h-12 rounded-xl border bg-gray-50/60 ${
+          className={`h-12 w-full rounded-2xl border bg-white text-base ${
             icon ? "pl-11" : "pl-4"
-          } pr-4 text-gray-900 outline-none transition-all focus:bg-white focus:ring-2 ${
+          } pr-4 text-gray-900 outline-none transition-all focus:ring-2 ${
             error
               ? "border-red-400 focus:border-red-400 focus:ring-red-100"
               : "border-gray-200 focus:border-[#2C6E49] focus:ring-green-100"
@@ -120,9 +120,9 @@ export function PasswordField({
           autoComplete={autoComplete}
           required={required}
           aria-invalid={!!error}
-          className={`w-full h-12 rounded-xl border bg-gray-50/60 ${
+          className={`h-12 w-full rounded-2xl border bg-white text-base ${
             icon ? "pl-11" : "pl-4"
-          } pr-11 text-gray-900 outline-none transition-all focus:bg-white focus:ring-2 ${
+          } pr-11 text-gray-900 outline-none transition-all focus:ring-2 ${
             error
               ? "border-red-400 focus:border-red-400 focus:ring-red-100"
               : "border-gray-200 focus:border-[#2C6E49] focus:ring-green-100"
@@ -131,7 +131,7 @@ export function PasswordField({
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
-          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center text-gray-400 hover:text-gray-600"
           tabIndex={-1}
           aria-label={visible ? "Hide password" : "Show password"}
         >
@@ -207,7 +207,7 @@ export function SubmitButton({
     <button
       type="submit"
       disabled={disabled || loading}
-      className="w-full h-12 rounded-xl bg-gradient-to-r from-[#2C6E49] to-[#0B6E4F] text-white font-bold text-base shadow-lg shadow-green-600/20 transition-all hover:shadow-green-600/30 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:hover:translate-y-0 disabled:shadow-none flex items-center justify-center gap-2"
+      className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-lime-400 text-base font-bold text-[#0b3d24] shadow-lg shadow-lime-500/20 transition-all hover:bg-lime-300 active:scale-[0.99] disabled:opacity-60 disabled:active:scale-100"
     >
       {loading && (
         <span className="h-5 w-5 rounded-full border-2 border-white/40 border-t-white animate-spin" />

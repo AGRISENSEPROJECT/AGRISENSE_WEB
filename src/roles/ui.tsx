@@ -129,3 +129,91 @@ export function PagePlaceholder({
     </div>
   );
 }
+
+/** Extract common Nest/API pagination fields from a response. */
+export function getPaginationMeta(
+  data: unknown,
+  page: number,
+  limit: number,
+  rowCount = 0,
+) {
+  const record =
+    data && typeof data === "object" ? (data as Record<string, unknown>) : {};
+  const meta =
+    record.meta && typeof record.meta === "object"
+      ? (record.meta as Record<string, unknown>)
+      : {};
+  const totalRaw = record.total ?? record.count ?? meta.total ?? meta.count;
+  const total =
+    typeof totalRaw === "number" && Number.isFinite(totalRaw)
+      ? totalRaw
+      : rowCount > 0 && rowCount < limit
+        ? (page - 1) * limit + rowCount
+        : Math.max(rowCount, page * limit);
+  const totalPagesRaw = record.totalPages ?? meta.totalPages;
+  const totalPages =
+    typeof totalPagesRaw === "number" && totalPagesRaw > 0
+      ? totalPagesRaw
+      : Math.max(1, Math.ceil(Math.max(total, 1) / limit));
+  const hasPrev = page > 1;
+  const hasNext =
+    page < totalPages ||
+    (typeof totalRaw !== "number" && rowCount >= limit);
+
+  return {
+    page,
+    limit,
+    total: typeof totalRaw === "number" ? totalRaw : total,
+    totalPages: hasNext && page >= totalPages ? page + 1 : totalPages,
+    hasPrev,
+    hasNext,
+  };
+}
+
+/** Simple prev/next pager for admin tables. */
+export function PaginationControls({
+  page,
+  totalPages,
+  total,
+  limit,
+  onPageChange,
+  disabled,
+}: {
+  page: number;
+  totalPages: number;
+  total?: number;
+  limit?: number;
+  onPageChange: (page: number) => void;
+  disabled?: boolean;
+}) {
+  if (totalPages <= 1 && (total === undefined || total <= (limit || 0))) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 flex flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-xs text-gray-500">
+        Page {page} of {Math.max(totalPages, 1)}
+        {typeof total === "number" ? ` · ${total} total` : ""}
+      </p>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          disabled={disabled || page <= 1}
+          onClick={() => onPageChange(page - 1)}
+          className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Previous
+        </button>
+        <button
+          type="button"
+          disabled={disabled || page >= totalPages}
+          onClick={() => onPageChange(page + 1)}
+          className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
