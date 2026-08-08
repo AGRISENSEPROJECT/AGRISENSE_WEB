@@ -33,6 +33,7 @@ export const routes = {
     weather: "/app/weather",
     analytics: "/app/analytics",
     community: "/app/community",
+    messages: "/app/messages",
     help: "/app/help",
     settings: "/app/settings",
     subscription: "/app/subscription",

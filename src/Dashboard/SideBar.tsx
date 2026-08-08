@@ -37,6 +37,7 @@ const SideBar = ({ onNavigate, compact = false }: SideBarProps) => {
     { title: "Weather", icon: "/assets/Dashboardicons/weather.svg", path: routes.app.weather, feature: "weather" },
     { title: "Analytics", icon: "/assets/Dashboardicons/analysis.svg", path: routes.app.analytics, feature: "analytics" },
     { title: "Community", icon: "/assets/Dashboardicons/community.svg", path: routes.app.community, feature: "community" },
+    { title: "Messages", icon: "/assets/Dashboardicons/notification.svg", path: routes.app.messages, feature: "messages" },
     { title: "Help & Support", icon: "/assets/Dashboardicons/help.svg", path: routes.app.help, feature: "help" },
     { title: "Subscription", icon: "/assets/Dashboardicons/settings.svg", path: routes.app.subscription, feature: "subscription" },
     { title: "Settings", icon: "/assets/Dashboardicons/settings.svg", path: routes.app.settings, feature: "settings" },

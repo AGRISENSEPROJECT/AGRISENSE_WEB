@@ -6,6 +6,7 @@ import SoilDetects from './Dashboard/SoilDetects/SoilDetects'
 import Weather from './Dashboard/Weather/Weather'
 import Analytics from './Dashboard/Analytics'
 import Community from './Dashboard/Community'
+import Messages from './Dashboard/Messages'
 import HelpandSupport from './Dashboard/HelpandSupport'
 import Settings from './Dashboard/Settings'
 import Subscription from './Dashboard/Subscription'
@@ -90,6 +91,7 @@ function App() {
       <Route path={routes.app.weather} element={<ProtectedRoute allowRoles={['FARMER']}><Weather /></ProtectedRoute>} />
       <Route path={routes.app.analytics} element={<ProtectedRoute allowRoles={['FARMER']}><Analytics /></ProtectedRoute>} />
       <Route path={routes.app.community} element={<ProtectedRoute allowRoles={['FARMER']}><Community /></ProtectedRoute>} />
+      <Route path={routes.app.messages} element={<ProtectedRoute allowRoles={['FARMER']}><Messages /></ProtectedRoute>} />
       <Route path={routes.app.help} element={<ProtectedRoute allowRoles={['FARMER']}><HelpandSupport /></ProtectedRoute>} />
       <Route path={routes.app.settings} element={<ProtectedRoute allowRoles={['FARMER']}><Settings /></ProtectedRoute>} />
       <Route path={routes.app.subscription} element={<ProtectedRoute allowRoles={['FARMER']}><Subscription /></ProtectedRoute>} />

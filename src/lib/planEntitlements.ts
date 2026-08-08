@@ -14,6 +14,7 @@ export type FarmerFeature =
   | "cropCare"
   | "weather"
   | "community"
+  | "messages"
   | "help"
   | "subscription"
   | "settings"
@@ -82,6 +83,7 @@ const ALWAYS_ON: FarmerFeature[] = [
   "cropCare",
   "weather",
   "community",
+  "messages",
   "help",
   "subscription",
   "settings",
