@@ -1,380 +1,561 @@
 import DashboardLayout from "./DashboardLayout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowUp, Leaf } from 'lucide-react';
+import { ArrowUp, Leaf, Loader2 } from "lucide-react"
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Area, AreaChart } from "recharts"
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { predictionService, type DashboardData } from "@/api";
-import { useAuth } from "@/context/useAuth";
-import { useFarms } from "@/hooks/useFarms";
-import { useWeather } from "@/hooks/useWeather";
-import WeatherIcon from "@/components/WeatherIcon";
-import { farmPlaceCandidates, formatFarmPlace } from "@/lib/weather";
-import { getUserDisplayName } from "@/lib/user";
+import { useEffect, useMemo, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import {
+  farmService,
+  predictionService,
+  type DashboardData,
+  type FarmCrop,
+  type PredictionRun,
+} from "@/api"
+import { useAuth } from "@/context/useAuth"
+import { useFarms } from "@/hooks/useFarms"
+import { useWeather } from "@/hooks/useWeather"
+import WeatherIcon from "@/components/WeatherIcon"
+import { farmPlaceCandidates, formatFarmPlace } from "@/lib/weather"
+import { getUserDisplayName } from "@/lib/user"
 
-interface Card{
-  title:string
-  metrics:string
-  percentage:string
-  icon:string
+const PIE_COLORS = ["#4D8D6E", "#2D6A4F", "#B5D9C3", "#95D5B2", "#40916C", "#74C69D", "#1B4332"]
+
+interface StatCard {
+  title: string
+  metrics: string
+  percentage: string
+}
+
+interface PieSlice {
+  name: string
+  value: number
+  color: string
+}
+
+interface MonthPoint {
+  month: string
+  [key: string]: string | number
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null
+}
+
+function toNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value
+  if (typeof value === "string" && value.trim() && Number.isFinite(Number(value))) {
+    return Number(value)
+  }
+  return null
+}
+
+function monthLabel(date: Date) {
+  return date.toLocaleString("en", { month: "short" }).toUpperCase()
+}
+
+function lastNMonths(n: number): MonthPoint[] {
+  const now = new Date()
+  const points: MonthPoint[] = []
+  for (let i = n - 1; i >= 0; i -= 1) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    points.push({ month: monthLabel(d), key: `${d.getFullYear()}-${d.getMonth()}` })
+  }
+  return points
+}
+
+function normalizeCrops(payload: unknown): FarmCrop[] {
+  if (Array.isArray(payload)) return payload as FarmCrop[]
+  const record = asRecord(payload)
+  if (!record) return []
+  const rows = record.crops ?? record.items ?? record.data
+  return Array.isArray(rows) ? (rows as FarmCrop[]) : []
+}
+
+function pieFromCrops(crops: FarmCrop[]): PieSlice[] {
+  const counts: Record<string, number> = {}
+  crops.forEach((crop) => {
+    const name = (crop.cropType || "Unknown").toString()
+    const weight = toNumber(crop.areaPlanted) ?? 1
+    counts[name] = (counts[name] || 0) + weight
+  })
+  return Object.entries(counts).map(([name, value], index) => ({
+    name,
+    value: Math.round(value * 10) / 10,
+    color: PIE_COLORS[index % PIE_COLORS.length],
+  }))
+}
+
+function pieFromSoilComposition(soil: Record<string, unknown> | null | undefined): PieSlice[] {
+  if (!soil) return []
+  const slices: PieSlice[] = []
+  Object.entries(soil).forEach(([key, raw], index) => {
+    const value = toNumber(raw)
+    if (value == null || value <= 0) return
+    slices.push({
+      name: key.charAt(0).toUpperCase() + key.slice(1),
+      value,
+      color: PIE_COLORS[index % PIE_COLORS.length],
+    })
+  })
+  return slices
+}
+
+function pieFromFarmSoil(farms: { soilType?: string }[]): PieSlice[] {
+  const counts: Record<string, number> = {}
+  farms.forEach((farm) => {
+    const key = (farm.soilType || "Unknown").toString()
+    counts[key] = (counts[key] || 0) + 1
+  })
+  return Object.entries(counts).map(([name, value], index) => ({
+    name: name.charAt(0).toUpperCase() + name.slice(1),
+    value,
+    color: PIE_COLORS[index % PIE_COLORS.length],
+  }))
+}
+
+function parseTrendSeries(trends: unknown): { data: MonthPoint[]; keys: string[] } | null {
+  if (!Array.isArray(trends) || trends.length === 0) return null
+
+  const rows = trends.map((item) => asRecord(item)).filter(Boolean) as Record<string, unknown>[]
+  if (!rows.length) return null
+
+  const reserved = new Set(["month", "label", "date", "name", "period", "key"])
+  const numericKeys = new Set<string>()
+  rows.forEach((row) => {
+    Object.entries(row).forEach(([key, value]) => {
+      if (!reserved.has(key.toLowerCase()) && toNumber(value) != null) numericKeys.add(key)
+    })
+  })
+
+  const keys = [...numericKeys].slice(0, 3)
+  if (!keys.length) return null
+
+  const data = rows.map((row, index) => {
+    const label =
+      (typeof row.month === "string" && row.month) ||
+      (typeof row.label === "string" && row.label) ||
+      (typeof row.period === "string" && row.period) ||
+      (typeof row.name === "string" && row.name) ||
+      (typeof row.date === "string"
+        ? monthLabel(new Date(row.date))
+        : `P${index + 1}`)
+
+    const point: MonthPoint = { month: String(label).toUpperCase().slice(0, 3) }
+    keys.forEach((key) => {
+      point[key] = toNumber(row[key]) ?? 0
+    })
+    return point
+  })
+
+  return { data, keys }
+}
+
+function activityFromRuns(
+  runs: PredictionRun[],
+  suggestionsCount: number,
+): { data: MonthPoint[]; keys: string[] } {
+  const months = lastNMonths(6)
+  const runCounts = new Map<string, number>()
+  const recCounts = new Map<string, number>()
+
+  runs.forEach((run) => {
+    if (!run.createdAt) return
+    const d = new Date(run.createdAt)
+    if (Number.isNaN(d.getTime())) return
+    const key = `${d.getFullYear()}-${d.getMonth()}`
+    runCounts.set(key, (runCounts.get(key) || 0) + 1)
+    const recs = Array.isArray(run.recommendations) ? run.recommendations.length : 0
+    recCounts.set(key, (recCounts.get(key) || 0) + recs)
+  })
+
+  // Spread total suggestions across months with runs when per-run recs are missing.
+  const monthsWithRuns = months.filter((m) => (runCounts.get(String(m.key)) || 0) > 0)
+  const fallbackPerMonth =
+    monthsWithRuns.length > 0 ? Math.round(suggestionsCount / monthsWithRuns.length) : 0
+
+  const data = months.map((m) => {
+    const key = String(m.key)
+    const predictions = runCounts.get(key) || 0
+    const fromRuns = recCounts.get(key) || 0
+    return {
+      month: m.month,
+      predictions,
+      recommendations: fromRuns > 0 ? fromRuns : predictions > 0 ? fallbackPerMonth : 0,
+    }
+  })
+
+  return { data, keys: ["predictions", "recommendations"] }
+}
+
+function growthFromRuns(runs: PredictionRun[]): { data: MonthPoint[]; keys: string[] } {
+  const months = lastNMonths(12)
+  const counts = new Map<string, number>()
+  runs.forEach((run) => {
+    if (!run.createdAt) return
+    const d = new Date(run.createdAt)
+    if (Number.isNaN(d.getTime())) return
+    const key = `${d.getFullYear()}-${d.getMonth()}`
+    counts.set(key, (counts.get(key) || 0) + 1)
+  })
+  const data = months.map((m) => ({
+    month: m.month,
+    runs: counts.get(String(m.key)) || 0,
+  }))
+  return { data, keys: ["runs"] }
+}
+
+const SERIES_COLORS = ["#4D8D6E", "#111827", "#40916C"]
+
+function ChartEmpty({ text }: { text: string }) {
+  return (
+    <div className="flex h-[250px] items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 px-6 text-center text-sm text-gray-500">
+      {text}
+    </div>
+  )
 }
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { farms } = useFarms();
-  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
-  const displayName = getUserDisplayName(user);
+  const navigate = useNavigate()
+  const { user } = useAuth()
+  const { farms, loading: farmsLoading } = useFarms()
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null)
+  const [crops, setCrops] = useState<FarmCrop[]>([])
+  const [loadingExtra, setLoadingExtra] = useState(true)
+  const displayName = getUserDisplayName(user)
 
-  const firstFarm = farms[0];
-  const weatherPlace = firstFarm ? formatFarmPlace(firstFarm) : undefined;
+  const firstFarm = farms[0]
+  const weatherPlace = firstFarm ? formatFarmPlace(firstFarm) : undefined
   const { weather } = useWeather({
     place: weatherPlace,
     placeCandidates: firstFarm ? farmPlaceCandidates(firstFarm) : undefined,
     useGeolocation: true,
     preferDevice: !weatherPlace,
-  });
+  })
 
   useEffect(() => {
-    document.title = 'Dashboard | AGRISENSE';
-  }, []);
+    document.title = "Dashboard | AGRISENSE"
+  }, [])
 
   useEffect(() => {
-    let active = true;
+    let active = true
     predictionService
-      .getDashboard({ limit: 10 })
+      .getDashboard({ limit: 50 })
       .then((data) => {
-        if (active) setDashboard(data);
+        if (active) setDashboard(data)
       })
       .catch(() => {
-        // Dashboard data is optional; ignore errors here.
-      });
+        // Dashboard payload is optional; charts fall back to farms/crops.
+      })
     return () => {
-      active = false;
-    };
-  }, []);
+      active = false
+    }
+  }, [])
 
-  const totalAcreage = farms.reduce((sum, f) => sum + (Number(f.size) || 0), 0);
-  const runsCount = Array.isArray(dashboard?.runs)
-    ? dashboard!.runs!.length
-    : Array.isArray(dashboard?.history)
-      ? dashboard!.history!.length
-      : 0;
+  useEffect(() => {
+    let active = true
+    if (!farms.length) {
+      setCrops([])
+      setLoadingExtra(false)
+      return
+    }
+
+    setLoadingExtra(true)
+    Promise.allSettled(farms.map((farm) => farmService.getCrops(farm.id)))
+      .then((results) => {
+        if (!active) return
+        const all: FarmCrop[] = []
+        results.forEach((result) => {
+          if (result.status === "fulfilled") {
+            all.push(...normalizeCrops(result.value))
+          }
+        })
+        setCrops(all)
+      })
+      .finally(() => {
+        if (active) setLoadingExtra(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [farms])
+
+  const totalAcreage = farms.reduce((sum, f) => sum + (Number(f.size) || 0), 0)
+  const runs: PredictionRun[] = useMemo(() => {
+    if (Array.isArray(dashboard?.runs)) return dashboard.runs
+    if (Array.isArray(dashboard?.history)) {
+      return dashboard.history
+        .map((item) => asRecord(item))
+        .filter(Boolean) as PredictionRun[]
+    }
+    return []
+  }, [dashboard])
+
   const suggestionsCount = Array.isArray(dashboard?.suggestions)
     ? dashboard!.suggestions!.length
-    : 0;
-  
-  const data = [
-    { name: "Maize plantations", value: 40, color: "#4D8D6E" },
-    { name: "Bean plantations", value: 25, color: "#B5D9C3" },
-    { name: "Rice plantations", value: 35, color: "#2D6A4F" },
+    : 0
+
+  const harvestData = useMemo(() => {
+    const fromCrops = pieFromCrops(crops)
+    if (fromCrops.length) return { data: fromCrops, title: "Crop Plantings" }
+    const fromSoil = pieFromSoilComposition(asRecord(dashboard?.soilComposition))
+    if (fromSoil.length) return { data: fromSoil, title: "Soil Composition" }
+    const fromFarms = pieFromFarmSoil(farms)
+    if (fromFarms.length) return { data: fromFarms, title: "Farms by Soil Type" }
+    return { data: [] as PieSlice[], title: "Crop Harvest Summary" }
+  }, [crops, dashboard, farms])
+
+  const growthSeries = useMemo(() => {
+    const fromTrends = parseTrendSeries(dashboard?.trends)
+    if (fromTrends) return fromTrends
+    return growthFromRuns(runs)
+  }, [dashboard, runs])
+
+  const activitySeries = useMemo(
+    () => activityFromRuns(runs, suggestionsCount),
+    [runs, suggestionsCount],
+  )
+
+  const cards: StatCard[] = [
+    { title: "Total Farms", metrics: `${farms.length}`, percentage: "active" },
+    {
+      title: "Total Acreage",
+      metrics: `${totalAcreage.toFixed(1)} acres`,
+      percentage: "tracked",
+    },
+    { title: "Prediction Runs", metrics: `${runs.length}`, percentage: "recorded" },
+    {
+      title: "Recommendations",
+      metrics: `${suggestionsCount}`,
+      percentage: "available",
+    },
   ]
 
-  const cropGrowthData = [
-    { month: "JAN", maize: 4, rice: 1 },
-    { month: "FEB", maize: 6, rice: 3 },
-    { month: "MAR", maize: 8, rice: 5 },
-    { month: "APR", maize: 10, rice: 6 },
-    { month: "MAY", maize: 9, rice: 7 },
-    { month: "JUN", maize: 7, rice: 8 },
-    { month: "JUL", maize: 6, rice: 8.35, highlight: true },
-    { month: "AUG", maize: 7, rice: 7 },
-    { month: "SEP", maize: 5, rice: 5 },
-    { month: "OCT", maize: 3, rice: 3 },
-    { month: "NOV", maize: 2, rice: 4 },
-    { month: "DEC", maize: 1, rice: 2 },
-  ]
-
-  const activitiesData = [
-    { month: "JAN", series1: 1, series2: 0.5 },
-    { month: "FEB", series1: 3, series2: 2 },
-    { month: "MAR", series1: 5, series2: 3 },
-    { month: "APR", series1: 3, series2: 2.5 },
-    { month: "MAY", series1: 4.5, series2: 4 },
-    { month: "JUN", series1: 7, series2: 5, highlight: true },
-  ]
-
-  const cards:Card[] = [
-    {title:"Total Farms",metrics:`${farms.length}`,percentage:"active",icon:'/assets/cardIcon.svg'},
-    {title:"Total Acreage",metrics:`${totalAcreage.toFixed(1)} acres`,percentage:"tracked",icon:'/assets/cardIcon.svg'},
-    {title:"Prediction Runs",metrics:`${runsCount}`,percentage:"recorded",icon:'/assets/cardIcon.svg'},
-    {title:"Recommendations",metrics:`${suggestionsCount}`,percentage:"available",icon:'/assets/cardIcon.svg'}
-  ]
-
+  const loading = farmsLoading || loadingExtra
 
   return (
     <DashboardLayout>
+      <div className="p-4 sm:p-6 bg-white">
+        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-8">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-[#0B6E4F]">
+              Welcome back{displayName !== "Guest" ? `, ${displayName}` : ""}!
+            </h1>
+            <p className="text-gray-500 text-sm">Here is an overview of your farms</p>
+          </div>
 
-    <div className="p-4 sm:p-6 bg-white">
-      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-8">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#0B6E4F]">
-            Welcome back{displayName !== "Guest" ? `, ${displayName}` : ""}!
-          </h1>
-          <p className="text-gray-500 text-sm">Here is an overview of your farms</p>
+          <div className="flex flex-col xs:flex-row sm:flex-row items-stretch sm:items-center gap-2">
+            <div className="bg-white rounded-lg shadow-sm p-3 flex items-center border">
+              {weather ? (
+                <>
+                  <WeatherIcon
+                    category={weather.current.category}
+                    className="h-5 w-5 mr-2 text-[#377552] shrink-0"
+                  />
+                  <span className="font-semibold">
+                    {Math.round(weather.current.temperature)}°C
+                  </span>
+                  <span className="text-gray-500 ml-2 text-sm truncate">
+                    - {weather.current.label}
+                  </span>
+                </>
+              ) : (
+                <span className="text-gray-400 text-sm">Loading weather…</span>
+              )}
+            </div>
+            <Button
+              onClick={() => navigate("/app/crop-care")}
+              className="px-6 font-bold bg-[#377552] hover:bg-[#2D6A4F] shrink-0"
+            >
+              Explore more
+            </Button>
+          </div>
         </div>
 
-        <div className="flex flex-col xs:flex-row sm:flex-row items-stretch sm:items-center gap-2">
-          <div className="bg-white rounded-lg shadow-sm p-3 flex items-center border">
-            {weather ? (
-              <>
-                <WeatherIcon category={weather.current.category} className="h-5 w-5 mr-2 text-[#377552] shrink-0" />
-                <span className="font-semibold">{Math.round(weather.current.temperature)}°C</span>
-                <span className="text-gray-500 ml-2 text-sm truncate">- {weather.current.label}</span>
-              </>
-            ) : (
-              <span className="text-gray-400 text-sm">Loading weather…</span>
-            )}
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 w-full lg:w-1/2 mt-12">
+            {cards.map((card) => (
+              <Card key={card.title} className="border shadow-sm h-[130px]">
+                <CardContent>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-gray-500 text-sm mb-1">{card.title}</p>
+                      <p className="text-lg font-bold">{card.metrics}</p>
+                      <p className="text-[#377552] text-sm mt-1">
+                        <ArrowUp className="inline h-3 w-3 mr-1" />
+                        {card.percentage}
+                      </p>
+                    </div>
+                    <div className="bg-green-100 p-2 rounded-md">
+                      <Leaf className="h-4 w-4 text-[#377552]" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-          <Button
-            onClick={() => navigate("/app/crop-care")}
-            className="px-6 font-bold bg-[#377552] hover:bg-[#2D6A4F] shrink-0"
-          >
-            Explore more
-          </Button>
+
+          <Card className="border shadow-sm lg:w-1/2">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">{harvestData.title}</h2>
+              </div>
+
+              {loading ? (
+                <div className="flex h-[250px] items-center justify-center">
+                  <Loader2 className="h-7 w-7 animate-spin text-[#2C6E49]" />
+                </div>
+              ) : harvestData.data.length === 0 ? (
+                <ChartEmpty text="No crop or soil data yet. Add farms and crops in Settings." />
+              ) : (
+                <div className="h-[250px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={harvestData.data}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={90}
+                        paddingAngle={2}
+                        dataKey="value"
+                      >
+                        {harvestData.data.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Legend
+                        layout="vertical"
+                        verticalAlign="middle"
+                        align="right"
+                        wrapperStyle={{ paddingLeft: "20px" }}
+                      />
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Cards section - left side */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 w-full lg:w-1/2 mt-12">
-
-       {cards.map(card=>(
-
-          <Card className="border shadow-sm h-[130px]">
-            <CardContent className="">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-gray-500 text-sm mb-1">{card.title}</p>
-                  <p className="text-lg font-bold">{card.metrics}</p>
-                  <p className="text-[#377552] text-sm mt-1">
-                    <ArrowUp className="inline h-3 w-3 mr-1" />
-                    {card.percentage} in good state
-                  </p>
-                </div>
-                <div className="bg-green-100 p-2 rounded-md">
-                  <Leaf className="h-4 w-4 text-[#377552]" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-       ))}
-          {/* Total Crops Card */}
-        </div>
-
-        {/* Crop Harvest Summary Chart - right side */}
-        <Card className="border shadow-sm lg:w-1/2">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Crop Harvest Summary</h2>
-              <Tabs defaultValue="year">
-                <TabsList className="bg-gray-100">
-                  <TabsTrigger value="year">Year</TabsTrigger>
-                  <TabsTrigger value="month">Month</TabsTrigger>
-                  <TabsTrigger value="week">Week</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-
-            <div className="h-[250px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={data} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={0} dataKey="value">
-                    {data.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Legend
-                    layout="vertical"
-                     verticalAlign="middle"
-                    align="right"
-                    wrapperStyle={{ paddingLeft: "20px" }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-    </div>
-    </div>
-    <div className="flex flex-col lg:flex-row gap-6 mt-6 mx-4 sm:mx-5 bg-white">
-        {/* Crop Growth Monitoring Chart */}
+      <div className="flex flex-col lg:flex-row gap-6 mt-6 mx-4 sm:mx-5 bg-white">
         <Card className="border shadow-sm lg:w-1/2">
           <CardContent className="p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">Crop Growth Monitoring</h2>
-              <Tabs defaultValue="year">
-                <TabsList className="bg-gray-100">
-                  <TabsTrigger value="year">Year</TabsTrigger>
-                  <TabsTrigger value="month">Month</TabsTrigger>
-                </TabsList>
-              </Tabs>
             </div>
 
-            <div className="flex items-center gap-4 mb-4">
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-[#4D8D6E] rounded-sm"></div>
-                <span className="text-sm text-gray-600">Maize</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-black rounded-sm"></div>
-                <span className="text-sm text-gray-600">Rice</span>
-              </div>
+            <div className="flex flex-wrap items-center gap-4 mb-4">
+              {growthSeries.keys.map((key, index) => (
+                <div key={key} className="flex items-center gap-1">
+                  <div
+                    className="w-3 h-3 rounded-sm"
+                    style={{ backgroundColor: SERIES_COLORS[index % SERIES_COLORS.length] }}
+                  />
+                  <span className="text-sm text-gray-600 capitalize">{key}</span>
+                </div>
+              ))}
             </div>
 
-            <div className="h-[250px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={cropGrowthData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                  <defs>
-                    <linearGradient id="maizeGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#4D8D6E" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#4D8D6E" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} domain={[0, "dataMax + 1"]} />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="maize"
-                    stroke="#4D8D6E"
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 6 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="rice"
-                    stroke="#000000"
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 6 }}
-                  />
-                  {/* Highlight point */}
-                  {cropGrowthData.map((entry, index) =>
-                    entry.highlight ? (
-                      <g key={`highlight-${index}`}>
-                        <circle
-                          cx={index * (100 / (cropGrowthData.length - 1)) + "%"}
-                          cy={`${100 - (entry.rice / 11) * 100}%`}
-                          r={6}
-                          fill="#4D8D6E"
-                        />
-                        <rect
-                          x={index * (100 / (cropGrowthData.length - 1)) - 2 + "%"}
-                          y={`${100 - (entry.rice / 11) * 100 - 25}%`}
-                          width="40"
-                          height="20"
-                          rx="4"
-                          fill="#4D8D6E"
-                        />
-                        <text
-                          x={index * (100 / (cropGrowthData.length - 1)) + 18 + "%"}
-                          y={`${100 - (entry.rice / 11) * 100 - 12}%`}
-                          textAnchor="middle"
-                          fill="white"
-                          fontSize="12"
-                        >
-                          83.5
-                        </text>
-                      </g>
-                    ) : null,
-                  )}
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            {growthSeries.data.every((row) =>
+              growthSeries.keys.every((key) => !Number(row[key])),
+            ) ? (
+              <ChartEmpty text="No prediction trends yet. Run a soil/crop analysis to see growth over time." />
+            ) : (
+              <div className="h-[250px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={growthSeries.data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} allowDecimals={false} />
+                    <Tooltip />
+                    {growthSeries.keys.map((key, index) => (
+                      <Line
+                        key={key}
+                        type="monotone"
+                        dataKey={key}
+                        stroke={SERIES_COLORS[index % SERIES_COLORS.length]}
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={{ r: 5 }}
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Activities Chart */}
         <Card className="border shadow-sm lg:w-1/2">
           <CardContent className="p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">Activities</h2>
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-[#4D8D6E] rounded-sm"></div>
-                  <span className="text-sm text-gray-600">Series1</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-black rounded-sm"></div>
-                  <span className="text-sm text-gray-600">Series2</span>
-                </div>
+                {activitySeries.keys.map((key, index) => (
+                  <div key={key} className="flex items-center gap-1">
+                    <div
+                      className="w-3 h-3 rounded-sm"
+                      style={{ backgroundColor: SERIES_COLORS[index % SERIES_COLORS.length] }}
+                    />
+                    <span className="text-sm text-gray-600 capitalize">{key}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="h-[250px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={activitiesData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                  <defs>
-                    <linearGradient id="series1Gradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#4D8D6E" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#4D8D6E" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} domain={[0, "dataMax + 1"]} />
-                  <Tooltip />
-                  <Area
-                    type="monotone"
-                    dataKey="series1"
-                    stroke="#4D8D6E"
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    fill="url(#series1Gradient)"
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="series2"
-                    stroke="#000000"
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
-                  {/* Highlight point */}
-                  {activitiesData.map((entry, index) =>
-                    entry.highlight ? (
-                      <g key={`highlight-${index}`}>
-                        <circle
-                          cx={index * (100 / (activitiesData.length - 1)) + "%"}
-                          cy={`${100 - (entry.series1 / 8) * 100}%`}
-                          r={6}
-                          fill="#4D8D6E"
-                        />
-                        <rect
-                          x={index * (100 / (activitiesData.length - 1)) - 2 + "%"}
-                          y={`${100 - (entry.series1 / 8) * 100 - 25}%`}
-                          width="40"
-                          height="20"
-                          rx="4"
-                          fill="#4D8D6E"
-                        />
-                        <text
-                          x={index * (100 / (activitiesData.length - 1)) + 18 + "%"}
-                          y={`${100 - (entry.series1 / 8) * 100 - 12}%`}
-                          textAnchor="middle"
-                          fill="white"
-                          fontSize="12"
-                        >
-                          7.2
-                        </text>
-                      </g>
-                    ) : null,
-                  )}
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+            {activitySeries.data.every((row) =>
+              activitySeries.keys.every((key) => !Number(row[key])),
+            ) ? (
+              <ChartEmpty text="No recent prediction activity. Your runs and recommendations will appear here." />
+            ) : (
+              <div className="h-[250px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={activitySeries.data}
+                    margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
+                  >
+                    <defs>
+                      <linearGradient id="predictionsGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#4D8D6E" stopOpacity={0.2} />
+                        <stop offset="95%" stopColor="#4D8D6E" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} allowDecimals={false} />
+                    <Tooltip />
+                    <Area
+                      type="monotone"
+                      dataKey="predictions"
+                      stroke="#4D8D6E"
+                      strokeWidth={2}
+                      fill="url(#predictionsGradient)"
+                      dot={false}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="recommendations"
+                      stroke="#111827"
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                      activeDot={{ r: 5 }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
     </DashboardLayout>
-  );
-};
+  )
+}
 
-export default Dashboard;
+export default Dashboard

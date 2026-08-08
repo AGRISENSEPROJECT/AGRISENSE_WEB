@@ -35,6 +35,8 @@ export interface AuthUser {
   status?: string;
   createdAt?: string;
   farm?: Farm | null;
+  /** Present when billing module is enabled (from auth/me / profile / tokens). */
+  subscription?: UserSubscriptionSummary | null;
 }
 
 export interface RegisterDto {
@@ -732,4 +734,125 @@ export const RWANDA_PROVINCES = [
   "Western Province",
   "Kigali City",
 ] as const;
+
+// ---------------------------------------------------------------------------
+// Billing / Subscriptions
+// ---------------------------------------------------------------------------
+
+export type BillingPlanId = "starter" | "pro" | "enterprise";
+export type BillingCycle = "monthly" | "annual";
+export type BillingPaymentMethod = "momo" | "airtel" | "card" | "manual" | "none";
+export type SubscriptionStatus =
+  | "active"
+  | "trialing"
+  | "past_due"
+  | "canceled"
+  | "pending_payment"
+  | "expired";
+
+export interface PlanLimits {
+  maxFarms?: number | null;
+  weatherDays?: number | null;
+  aiRecommendations?: boolean;
+  [key: string]: unknown;
+}
+
+/** Compact subscription attached to auth profile / tokens. */
+export interface UserSubscriptionSummary {
+  planId?: BillingPlanId | string;
+  status?: SubscriptionStatus | string;
+  billingCycle?: BillingCycle | null;
+  limits?: PlanLimits;
+  currentPeriodEnd?: string | null;
+  cancelAtPeriodEnd?: boolean;
+  [key: string]: unknown;
+}
+
+export interface BillingPlan {
+  id: BillingPlanId | string;
+  name?: string;
+  title?: string;
+  description?: string;
+  features?: string[];
+  /** Preferred backend field names */
+  priceMonthly?: number | null;
+  priceAnnualPerMonth?: number | null;
+  /** Aliases some responses may use */
+  monthly?: number | null;
+  annualPerMonth?: number | null;
+  limits?: PlanLimits;
+  isPublic?: boolean;
+  popular?: boolean;
+  [key: string]: unknown;
+}
+
+export interface UserSubscription {
+  id?: string;
+  planId: BillingPlanId | string;
+  billingCycle?: BillingCycle | null;
+  status: SubscriptionStatus | string;
+  paymentMethod?: BillingPaymentMethod | string;
+  paymentLabel?: string;
+  label?: string;
+  amount?: number;
+  currency?: string;
+  currentPeriodStart?: string | null;
+  currentPeriodEnd?: string | null;
+  cancelAtPeriodEnd?: boolean;
+  canceledAt?: string | null;
+  limits?: PlanLimits;
+  updatedAt?: string;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
+export interface CheckoutDto {
+  planId: "pro";
+  billingCycle: BillingCycle;
+  method: "momo" | "airtel" | "card";
+  phone?: string;
+  returnUrl?: string;
+  cancelUrl?: string;
+}
+
+export interface CheckoutPaymentInfo {
+  provider?: string;
+  mode?: string;
+  redirectUrl?: string;
+  message?: string;
+  providerRef?: string;
+  [key: string]: unknown;
+}
+
+export interface CheckoutResponse {
+  checkoutId: string;
+  status?: SubscriptionStatus | string;
+  providerRef?: string;
+  payment?: CheckoutPaymentInfo;
+  subscription?: UserSubscription;
+  [key: string]: unknown;
+}
+
+export interface CancelSubscriptionDto {
+  atPeriodEnd?: boolean;
+}
+
+export interface EnterpriseInquiryDto {
+  organizationName: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone?: string;
+  message: string;
+}
+
+export interface AdminAssignSubscriptionDto {
+  planId: BillingPlanId;
+  periodDays?: number;
+  note?: string;
+  billingCycle?: BillingCycle;
+}
+
+export interface AdminRevokeSubscriptionDto {
+  note?: string;
+}
 

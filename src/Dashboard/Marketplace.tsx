@@ -36,7 +36,7 @@ export default function Marketplace() {
       setError(null);
       try {
         const [productsRes, recRes] = await Promise.all([
-          marketplaceService.getProducts({ page: 1, limit: 40, category: "SEEDS" }),
+          marketplaceService.getProducts({ page: 1, limit: 40 }),
           predictionService.getRecommendations({ limit: 20 }),
         ]);
         if (!active) return;

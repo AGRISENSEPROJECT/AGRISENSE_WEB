@@ -1,70 +1,110 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, Sparkles } from "lucide-react";
 import { useAuth } from "@/context/useAuth";
 import { routes } from "@/lib/routes";
+import { billingService, type BillingPlan, type BillingPlanId } from "@/api";
 
 type Billing = "monthly" | "annual";
 
 interface Plan {
-  id: "starter" | "pro" | "enterprise";
+  id: BillingPlanId;
   title: string;
   description: string;
-  monthly: number | null; // null = custom pricing
+  monthly: number | null;
   annualPerMonth: number | null;
   features: string[];
   popular?: boolean;
 }
 
+const FALLBACK_PLANS: Plan[] = [
+  {
+    id: "starter",
+    title: "Starter",
+    description: "For smallholder farmers getting started with smart farming.",
+    monthly: 0,
+    annualPerMonth: 0,
+    features: [
+      "1 farm profile",
+      "Basic soil & crop analysis",
+      "3-day weather forecast",
+      "Community access",
+    ],
+  },
+  {
+    id: "pro",
+    title: "Pro",
+    description: "For active farmers who want the full picture, all season.",
+    monthly: 10000,
+    annualPerMonth: 8000,
+    features: [
+      "Up to 10 farm profiles",
+      "Unlimited soil & crop reports",
+      "7-day weather & pest alerts",
+      "Personalised AI recommendations",
+      "Supplier & market insights",
+      "Priority support",
+    ],
+    popular: true,
+  },
+  {
+    id: "enterprise",
+    title: "Enterprise",
+    description: "For cooperatives, suppliers, NGOs & government programs.",
+    monthly: null,
+    annualPerMonth: null,
+    features: [
+      "Unlimited farms & team members",
+      "Regional & nationwide data",
+      "Program & impact dashboards",
+      "API access & integrations",
+      "Dedicated account manager",
+    ],
+  },
+];
+
+function mapApiPlan(p: BillingPlan): Plan {
+  const fallback = FALLBACK_PLANS.find((f) => f.id === p.id);
+  const monthly =
+    p.priceMonthly !== undefined ? p.priceMonthly : p.monthly !== undefined ? p.monthly : fallback?.monthly ?? null;
+  const annualPerMonth =
+    p.priceAnnualPerMonth !== undefined
+      ? p.priceAnnualPerMonth
+      : p.annualPerMonth !== undefined
+        ? p.annualPerMonth
+        : fallback?.annualPerMonth ?? null;
+
+  return {
+    id: (p.id as BillingPlanId) || "starter",
+    title: p.title || p.name || fallback?.title || String(p.id),
+    description: p.description || fallback?.description || "",
+    monthly,
+    annualPerMonth,
+    features: p.features?.length ? p.features : fallback?.features || [],
+    popular: p.popular ?? p.id === "pro",
+  };
+}
+
 const PriceCards = () => {
   const [billing, setBilling] = useState<Billing>("monthly");
+  const [plans, setPlans] = useState<Plan[]>(FALLBACK_PLANS);
   const { isAuthenticated } = useAuth();
 
-  const plans: Plan[] = [
-    {
-      id: "starter",
-      title: "Starter",
-      description: "For smallholder farmers getting started with smart farming.",
-      monthly: 0,
-      annualPerMonth: 0,
-      features: [
-        "1 farm profile",
-        "Basic soil & crop analysis",
-        "3-day weather forecast",
-        "Community access",
-      ],
-    },
-    {
-      id: "pro",
-      title: "Pro",
-      description: "For active farmers who want the full picture, all season.",
-      monthly: 10000,
-      annualPerMonth: 8000,
-      features: [
-        "Up to 10 farm profiles",
-        "Unlimited soil & crop reports",
-        "7-day weather & pest alerts",
-        "Personalised AI recommendations",
-        "Supplier & market insights",
-        "Priority support",
-      ],
-      popular: true,
-    },
-    {
-      id: "enterprise",
-      title: "Enterprise",
-      description: "For cooperatives, suppliers, NGOs & government programs.",
-      monthly: null,
-      annualPerMonth: null,
-      features: [
-        "Unlimited farms & team members",
-        "Regional & nationwide data",
-        "Program & impact dashboards",
-        "API access & integrations",
-        "Dedicated account manager",
-      ],
-    },
-  ];
+  useEffect(() => {
+    let active = true;
+    billingService
+      .getPlans()
+      .then((rows) => {
+        if (!active || !rows.length) return;
+        setPlans(rows.map(mapApiPlan));
+      })
+      .catch(() => {
+        // Keep marketing fallbacks if catalog is unreachable.
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const resolveCta = (plan: Plan) => {
     if (plan.id === "enterprise") {
@@ -85,7 +125,6 @@ const PriceCards = () => {
         },
       };
     }
-    // Starter — free plan still goes through subscription page when logged in
     return {
       label: isAuthenticated ? "Manage subscription" : "Get Started Free",
       to: isAuthenticated ? routes.app.subscription : routes.auth.register,
@@ -104,7 +143,6 @@ const PriceCards = () => {
 
   return (
     <div>
-      {/* Billing toggle */}
       <div className="mb-10 flex items-center justify-center gap-3">
         <span
           className={`text-sm font-semibold ${
@@ -138,7 +176,6 @@ const PriceCards = () => {
         </span>
       </div>
 
-      {/* Cards */}
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
         {plans.map((plan) => {
           const cta = resolveCta(plan);

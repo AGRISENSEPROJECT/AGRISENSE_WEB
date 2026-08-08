@@ -1,0 +1,105 @@
+import { api } from "../client";
+import type {
+  AdminAssignSubscriptionDto,
+  AdminRevokeSubscriptionDto,
+  BillingPlan,
+  CancelSubscriptionDto,
+  CheckoutDto,
+  CheckoutResponse,
+  EnterpriseInquiryDto,
+  MessageResponse,
+  UserSubscription,
+} from "../types";
+
+function unwrapList<T>(payload: unknown, keys: string[]): T[] {
+  if (Array.isArray(payload)) return payload as T[];
+  if (!payload || typeof payload !== "object") return [];
+  const record = payload as Record<string, unknown>;
+  for (const key of keys) {
+    const value = record[key];
+    if (Array.isArray(value)) return value as T[];
+  }
+  return [];
+}
+
+function unwrapSubscription(payload: unknown): UserSubscription {
+  if (!payload || typeof payload !== "object") {
+    return { planId: "starter", status: "active" };
+  }
+  const record = payload as Record<string, unknown>;
+  const nested = record.subscription;
+  if (nested && typeof nested === "object") {
+    return nested as UserSubscription;
+  }
+  return payload as UserSubscription;
+}
+
+export const billingService = {
+  getPlans: async () => {
+    const res = await api.get<BillingPlan[] | { plans?: BillingPlan[]; data?: BillingPlan[]; items?: BillingPlan[] }>(
+      "/billing/plans",
+      { auth: false },
+    );
+    return unwrapList<BillingPlan>(res, ["plans", "data", "items"]);
+  },
+
+  getSubscription: async () => {
+    const res = await api.get<UserSubscription | { subscription?: UserSubscription }>(
+      "/billing/subscription",
+    );
+    return unwrapSubscription(res);
+  },
+
+  activateStarter: () =>
+    api.post<UserSubscription | { subscription?: UserSubscription; message?: string }>(
+      "/billing/subscription/starter",
+      {},
+    ),
+
+  checkout: (dto: CheckoutDto) =>
+    api.post<CheckoutResponse>("/billing/checkout", dto),
+
+  getCheckout: (checkoutId: string) =>
+    api.get<CheckoutResponse>(`/billing/checkout/${checkoutId}`),
+
+  cancel: (dto: CancelSubscriptionDto = { atPeriodEnd: true }) =>
+    api.post<UserSubscription | { subscription?: UserSubscription }>("/billing/subscription/cancel", dto),
+
+  resume: () =>
+    api.post<UserSubscription | { subscription?: UserSubscription }>(
+      "/billing/subscription/resume",
+      {},
+    ),
+
+  enterpriseInquiry: (dto: EnterpriseInquiryDto) =>
+    api.post<MessageResponse>("/billing/enterprise/inquiry", dto),
+
+  // Admin
+  adminListSubscriptions: (params: Record<string, string | number | undefined> = {}) => {
+    const search = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        search.append(key, String(value));
+      }
+    });
+    const qs = search.toString();
+    return api.get<unknown>(`/admin/billing/subscriptions${qs ? `?${qs}` : ""}`);
+  },
+
+  adminListTransactions: (params: Record<string, string | number | undefined> = {}) => {
+    const search = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        search.append(key, String(value));
+      }
+    });
+    const qs = search.toString();
+    return api.get<unknown>(`/admin/billing/transactions${qs ? `?${qs}` : ""}`);
+  },
+
+  adminAssign: (userId: string, dto: AdminAssignSubscriptionDto) =>
+    api.post<MessageResponse>(`/admin/billing/subscriptions/${userId}/assign`, dto),
+
+  adminRevoke: (userId: string, dto: AdminRevokeSubscriptionDto = {}) =>
+    api.post<MessageResponse>(`/admin/billing/subscriptions/${userId}/revoke`, dto),
+};

@@ -39,6 +39,7 @@ import AdminDashboard from './roles/admin/AdminDashboard'
 import AdminUsers from './roles/admin/AdminUsers'
 import AdminModeration from './roles/admin/AdminModeration'
 import AdminWaitlist from './roles/admin/AdminWaitlist'
+import AdminBilling from './roles/admin/AdminBilling'
 import AdminNotifications from './roles/admin/AdminNotifications'
 import { AdminSuppliers, AdminAnalytics, AdminSettings } from './roles/admin/AdminPlaceholders'
 
@@ -107,6 +108,7 @@ function App() {
       <Route path={routes.admin.users} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminUsers /></ProtectedRoute>} />
       <Route path={routes.admin.suppliers} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminSuppliers /></ProtectedRoute>} />
       <Route path={routes.admin.waitlist} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminWaitlist /></ProtectedRoute>} />
+      <Route path={routes.admin.billing} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminBilling /></ProtectedRoute>} />
       <Route path={routes.admin.moderation} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminModeration /></ProtectedRoute>} />
       <Route path={routes.admin.analytics} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminAnalytics /></ProtectedRoute>} />
       <Route path={routes.admin.notifications} element={<ProtectedRoute allowRoles={['ADMIN']}><AdminNotifications /></ProtectedRoute>} />
