@@ -19,6 +19,11 @@ import { useWeather } from "@/hooks/useWeather"
 import WeatherIcon from "@/components/WeatherIcon"
 import { farmPlaceCandidates, formatFarmPlace } from "@/lib/weather"
 import { getUserDisplayName } from "@/lib/user"
+import { usePlanEntitlements } from "@/hooks/usePlanEntitlements"
+import { planDisplayName } from "@/lib/planEntitlements"
+import { PlanUpgradeBanner } from "@/components/PlanUpgradeBanner"
+import { Link } from "react-router-dom"
+import { routes } from "@/lib/routes"
 
 const PIE_COLORS = ["#4D8D6E", "#2D6A4F", "#B5D9C3", "#95D5B2", "#40916C", "#74C69D", "#1B4332"]
 
@@ -222,6 +227,7 @@ const Dashboard = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { farms, loading: farmsLoading } = useFarms()
+  const entitlements = usePlanEntitlements()
   const [dashboard, setDashboard] = useState<DashboardData | null>(null)
   const [crops, setCrops] = useState<FarmCrop[]>([])
   const [loadingExtra, setLoadingExtra] = useState(true)
@@ -345,7 +351,12 @@ const Dashboard = () => {
             <h1 className="text-xl sm:text-2xl font-bold text-[#0B6E4F]">
               Welcome back{displayName !== "Guest" ? `, ${displayName}` : ""}!
             </h1>
-            <p className="text-gray-500 text-sm">Here is an overview of your farms</p>
+            <p className="text-gray-500 text-sm">
+              Here is an overview of your farms ·{" "}
+              <Link to={routes.app.subscription} className="font-semibold text-[#2C6E49] hover:underline">
+                {planDisplayName(entitlements.planId)} plan
+              </Link>
+            </p>
           </div>
 
           <div className="flex flex-col xs:flex-row sm:flex-row items-stretch sm:items-center gap-2">
@@ -375,6 +386,15 @@ const Dashboard = () => {
             </Button>
           </div>
         </div>
+
+        {!entitlements.isPaid && (
+          <div className="mb-6">
+            <PlanUpgradeBanner
+              title="You're on Starter"
+              description={`Includes ${entitlements.maxFarms ?? 1} farm, ${entitlements.weatherDays}-day weather, community, and marketplace browsing. Upgrade for AI tips, analytics, and more farms.`}
+            />
+          </div>
+        )}
 
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 w-full lg:w-1/2 mt-12">
