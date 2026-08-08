@@ -1,6 +1,7 @@
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Instagram, Linkedin, Mail, MapPin, Phone, Youtube } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import PublicLayout from "./PublicLayout";
+import { CONTACT, mailtoAgriSense } from "@/lib/contact";
 
 interface ContactState {
   plan?: string;
@@ -11,9 +12,8 @@ const ContactPage = () => {
   const location = useLocation();
   const state = (location.state as ContactState | null) ?? {};
   const isEnterprise = state.plan === "enterprise";
-  const mailSubject = encodeURIComponent(
-    state.subject || (isEnterprise ? "AgriSense Enterprise enquiry" : "Hello from AgriSense website"),
-  );
+  const subject =
+    state.subject || (isEnterprise ? "AgriSense Enterprise enquiry" : "Hello from AgriSense website");
 
   return (
     <PublicLayout title="Contact">
@@ -34,32 +34,62 @@ const ContactPage = () => {
 
         <div className="mt-12 grid gap-6 sm:grid-cols-3">
           <a
-            href={`mailto:irasubizasalyneslon@gmail.com?subject=${mailSubject}`}
+            href={mailtoAgriSense(subject)}
             className="rounded-2xl border bg-white p-6 text-center shadow-sm transition-shadow hover:shadow-md"
           >
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2C6E49]/10 text-[#2C6E49]">
               <Mail className="h-5 w-5" />
             </div>
             <h2 className="font-semibold text-gray-900">Email</h2>
-            <p className="mt-1 text-sm text-gray-500">irasubizasalyneslon@gmail.com</p>
+            <p className="mt-1 text-sm text-gray-500">{CONTACT.email}</p>
           </a>
           <a
-            href="tel:+250798963223"
+            href={`tel:${CONTACT.phoneTel}`}
             className="rounded-2xl border bg-white p-6 text-center shadow-sm transition-shadow hover:shadow-md"
           >
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2C6E49]/10 text-[#2C6E49]">
               <Phone className="h-5 w-5" />
             </div>
             <h2 className="font-semibold text-gray-900">Phone</h2>
-            <p className="mt-1 text-sm text-gray-500">+250 798 963 223</p>
+            <p className="mt-1 text-sm text-gray-500">{CONTACT.phoneDisplay}</p>
           </a>
           <div className="rounded-2xl border bg-white p-6 text-center shadow-sm">
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2C6E49]/10 text-[#2C6E49]">
               <MapPin className="h-5 w-5" />
             </div>
             <h2 className="font-semibold text-gray-900">Location</h2>
-            <p className="mt-1 text-sm text-gray-500">Nyabihu, Rwanda</p>
+            <p className="mt-1 text-sm text-gray-500">{CONTACT.location}</p>
           </div>
+        </div>
+
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <a
+            href={CONTACT.social.instagram}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:border-[#2C6E49]/40"
+          >
+            <Instagram className="h-4 w-4 text-[#2C6E49]" />
+            Instagram
+          </a>
+          <a
+            href={CONTACT.social.linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:border-[#2C6E49]/40"
+          >
+            <Linkedin className="h-4 w-4 text-[#2C6E49]" />
+            LinkedIn
+          </a>
+          <a
+            href={CONTACT.social.youtube}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:border-[#2C6E49]/40"
+          >
+            <Youtube className="h-4 w-4 text-[#2C6E49]" />
+            YouTube
+          </a>
         </div>
 
         <div className="mt-10 rounded-2xl border bg-[#f0f7f4] p-8 text-center">
@@ -72,7 +102,7 @@ const ContactPage = () => {
               : "Send us a message and we’ll get back to you as soon as we can."}
           </p>
           <a
-            href={`mailto:irasubizasalyneslon@gmail.com?subject=${mailSubject}`}
+            href={mailtoAgriSense(subject)}
             className="mt-5 inline-flex rounded-lg bg-[#2C6E49] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#23583a]"
           >
             {isEnterprise ? "Email sales" : "Write to us"}

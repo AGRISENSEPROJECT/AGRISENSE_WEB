@@ -20,6 +20,7 @@ import {
   validatePhone,
 } from '@/lib/validation';
 import { routes } from '@/lib/routes';
+import { getApiErrorCode } from '@/lib/apiError';
 
 const SOIL_TYPES: SoilType[] = ['clay', 'sandy', 'loamy', 'silty', 'peaty', 'chalky'];
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB per API docs
@@ -396,7 +397,13 @@ function FarmsSection() {
       setShowForm(false);
       await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to create farm.');
+      if (getApiErrorCode(err) === 'PLAN_LIMIT') {
+        setError(
+          'Your current plan has reached its farm limit. Upgrade to Pro to add more farms.',
+        );
+      } else {
+        setError(err instanceof ApiError ? err.message : 'Failed to create farm.');
+      }
     } finally {
       setSaving(false);
     }
@@ -441,7 +448,20 @@ function FarmsSection() {
 
   return (
     <div className="space-y-4">
-      {error && <Banner type="error">{error}</Banner>}
+      {error && (
+        <div className="space-y-2">
+          <Banner type="error">{error}</Banner>
+          {error.includes('Upgrade to Pro') && (
+            <Link
+              to={routes.app.subscription}
+              state={{ plan: 'pro' }}
+              className="inline-block text-sm font-semibold text-[#2C6E49] hover:underline"
+            >
+              Open Billing &amp; upgrade →
+            </Link>
+          )}
+        </div>
+      )}
 
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold text-gray-800">Your Farms</h2>

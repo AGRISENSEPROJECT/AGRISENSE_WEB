@@ -53,6 +53,7 @@ export const routes = {
     users: "/admin/users",
     suppliers: "/admin/suppliers",
     waitlist: "/admin/waitlist",
+    billing: "/admin/billing",
     moderation: "/admin/moderation",
     analytics: "/admin/analytics",
     notifications: "/admin/notifications",
