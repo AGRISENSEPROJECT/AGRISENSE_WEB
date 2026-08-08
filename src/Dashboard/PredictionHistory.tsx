@@ -1,7 +1,9 @@
-import DashboardLayout from "./DashboardLayout";
+﻿import DashboardLayout from "./DashboardLayout";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { ApiError, predictionService, type PredictionRun, type Recommendation } from "@/api";
+import { usePlanEntitlements } from "@/hooks/usePlanEntitlements";
+import { PlanFeatureGate } from "@/components/PlanUpgradeBanner";
 
 function getRuns(data: unknown): PredictionRun[] {
   if (!data || typeof data !== "object") return [];
@@ -11,6 +13,7 @@ function getRuns(data: unknown): PredictionRun[] {
 }
 
 export default function PredictionHistory() {
+  const entitlements = usePlanEntitlements();
   const [runs, setRuns] = useState<PredictionRun[]>([]);
   const [selected, setSelected] = useState<PredictionRun | null>(null);
   const [loading, setLoading] = useState(true);
@@ -19,7 +22,15 @@ export default function PredictionHistory() {
 
   useEffect(() => {
     document.title = "Prediction History | AGRISENSE";
+  }, []);
+
+  useEffect(() => {
+    if (!entitlements.aiRecommendations) {
+      setLoading(false);
+      return;
+    }
     let active = true;
+    setLoading(true);
     (async () => {
       try {
         const res = await predictionService.getRuns({ page: 1, limit: 50 });
@@ -35,7 +46,7 @@ export default function PredictionHistory() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [entitlements.aiRecommendations]);
 
   const openRun = async (id: string) => {
     setDetailLoading(true);
@@ -49,6 +60,18 @@ export default function PredictionHistory() {
     }
   };
 
+  if (!entitlements.loading && !entitlements.aiRecommendations) {
+    return (
+      <DashboardLayout>
+        <PlanFeatureGate
+          planId={entitlements.planId}
+          title="Prediction history is a Pro feature"
+          description="AI prediction runs and disease recommendations unlock on Pro. Starter includes basic farm records, weather, community, and marketplace browsing."
+        />
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="grid gap-6 p-4 sm:grid-cols-[1.2fr,0.8fr] sm:p-6">
@@ -58,7 +81,11 @@ export default function PredictionHistory() {
             Review previous prediction runs and recommendation details.
           </p>
 
-          {error && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+          {error && (
+            <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
 
           {loading ? (
             <div className="flex justify-center py-20">
@@ -116,7 +143,9 @@ export default function PredictionHistory() {
                 <div className="space-y-2">
                   {((selected.recommendations || []) as Recommendation[]).map((rec) => (
                     <div key={rec.id} className="rounded-xl border border-gray-200 p-3">
-                      <p className="font-medium text-[#2C6E49]">{rec.title || rec.type || "Recommendation"}</p>
+                      <p className="font-medium text-[#2C6E49]">
+                        {rec.title || rec.type || "Recommendation"}
+                      </p>
                       <p className="mt-1 text-sm text-gray-600">
                         {rec.description || rec.content || "No details provided."}
                       </p>

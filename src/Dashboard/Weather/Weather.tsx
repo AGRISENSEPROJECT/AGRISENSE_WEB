@@ -9,10 +9,13 @@ import { useFarms } from "@/hooks/useFarms"
 import { useWeather } from "@/hooks/useWeather"
 import { getFarmingAdvisories, farmPlaceCandidates, formatFarmPlace, type Advisory } from "@/lib/weather"
 import { getUserDisplayName } from "@/lib/user"
+import { usePlanEntitlements } from "@/hooks/usePlanEntitlements"
+import { PlanUpgradeBanner } from "@/components/PlanUpgradeBanner"
 
 const Weather = () => {
   const { user } = useAuth()
   const { farms } = useFarms()
+  const entitlements = usePlanEntitlements()
   const displayName = getUserDisplayName(user)
   const [farmId, setFarmId] = useState<string>("")
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -35,6 +38,8 @@ const Weather = () => {
     useGeolocation: true,
     preferDevice: !place,
   })
+
+  const forecastDays = weather?.daily.slice(0, entitlements.weatherDays) ?? []
 
   const advisories = useMemo<Advisory[]>(
     () => (weather ? getFarmingAdvisories(weather) : []),
@@ -153,15 +158,25 @@ const Weather = () => {
             </div>
           )}
 
-          {/* 7-day strip */}
-          {weather && weather.daily.length > 0 && (
+          {/* Forecast strip limited by plan (Starter 3 days, Pro 7) */}
+          {weather && forecastDays.length > 0 && (
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">7-Day Forecast</CardTitle>
+                <CardTitle className="text-lg">
+                  {entitlements.weatherDays}-Day Forecast
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-                  {weather.daily.map((d) => (
+                {entitlements.weatherDays < 7 && (
+                  <div className="mb-4">
+                    <PlanUpgradeBanner
+                      compact
+                      title={`Starter shows ${entitlements.weatherDays} days — Pro unlocks 7-day outlook`}
+                    />
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+                  {forecastDays.map((d) => (
                     <div key={d.date} className="rounded-lg border p-3 text-center">
                       <p className="text-sm font-semibold text-gray-700">
                         {new Date(d.date).toLocaleDateString("en-US", { weekday: "short" })}
@@ -180,10 +195,12 @@ const Weather = () => {
           {/* Forecast chart */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Temperature Trend (7 days)</CardTitle>
+              <CardTitle className="text-lg">
+                Temperature Trend ({entitlements.weatherDays} days)
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <WeatherForecastChart daily={weather?.daily ?? []} />
+              <WeatherForecastChart daily={forecastDays} />
             </CardContent>
           </Card>
 

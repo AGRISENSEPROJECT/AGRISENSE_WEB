@@ -21,6 +21,9 @@ import {
 } from '@/lib/validation';
 import { routes } from '@/lib/routes';
 import { getApiErrorCode } from '@/lib/apiError';
+import { usePlanEntitlements } from '@/hooks/usePlanEntitlements';
+import { canAddFarm } from '@/lib/planEntitlements';
+import { PlanUpgradeBanner } from '@/components/PlanUpgradeBanner';
 
 const SOIL_TYPES: SoilType[] = ['clay', 'sandy', 'loamy', 'silty', 'peaty', 'chalky'];
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB per API docs
@@ -332,6 +335,7 @@ function SecuritySection() {
 // ---------------------------------------------------------------------------
 
 function FarmsSection() {
+  const entitlements = usePlanEntitlements();
   const [farms, setFarms] = useState<Farm[]>([]);
   const [archivedFarms, setArchivedFarms] = useState<Farm[]>([]);
   const [loading, setLoading] = useState(true);
@@ -339,6 +343,8 @@ function FarmsSection() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<CreateFarmDto>(emptyFarm);
   const [saving, setSaving] = useState(false);
+
+  const canAdd = canAddFarm(entitlements, farms.length);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -465,15 +471,28 @@ function FarmsSection() {
 
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold text-gray-800">Your Farms</h2>
-        <button
-          onClick={() => setShowForm((s) => !s)}
-          className="flex items-center gap-1.5 bg-[#2C6E49] hover:bg-[#23583a] text-white font-semibold text-sm px-4 py-2 rounded-md transition-colors"
-        >
-          <Plus className="h-4 w-4" /> {showForm ? 'Close' : 'Add Farm'}
-        </button>
+        {canAdd ? (
+          <button
+            onClick={() => setShowForm((s) => !s)}
+            className="flex items-center gap-1.5 bg-[#2C6E49] hover:bg-[#23583a] text-white font-semibold text-sm px-4 py-2 rounded-md transition-colors"
+          >
+            <Plus className="h-4 w-4" /> {showForm ? 'Close' : 'Add Farm'}
+          </button>
+        ) : (
+          <span className="text-xs font-medium text-gray-500">
+            Farm limit reached ({entitlements.maxFarms ?? '∞'})
+          </span>
+        )}
       </div>
 
-      {showForm && (
+      {!canAdd && (
+        <PlanUpgradeBanner
+          title={`Starter allows ${entitlements.maxFarms ?? 1} farm`}
+          description="Upgrade to Pro for up to 10 farm profiles."
+        />
+      )}
+
+      {showForm && canAdd && (
         <form onSubmit={handleCreate} className="bg-white border rounded-lg shadow-sm p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field label="Farm name">
             <TextInput value={form.name} onChange={(v) => updateField('name', v)} required />

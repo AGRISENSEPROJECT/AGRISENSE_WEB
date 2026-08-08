@@ -9,9 +9,12 @@ import { predictionService, type Recommendation } from "@/api"
 import { useFarms } from "@/hooks/useFarms"
 import { useWeather } from "@/hooks/useWeather"
 import { farmPlaceCandidates, formatFarmPlace } from "@/lib/weather"
+import { usePlanEntitlements } from "@/hooks/usePlanEntitlements"
+import { PlanUpgradeBanner } from "@/components/PlanUpgradeBanner"
 
 const CropCare = () => {
   const { farms } = useFarms()
+  const entitlements = usePlanEntitlements()
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -29,6 +32,11 @@ const CropCare = () => {
   })
 
   useEffect(() => {
+    if (!entitlements.aiRecommendations) {
+      setRecommendations([])
+      setLoading(false)
+      return
+    }
     let active = true
     setLoading(true)
     predictionService
@@ -45,9 +53,8 @@ const CropCare = () => {
     return () => {
       active = false
     }
-  }, [])
+  }, [entitlements.aiRecommendations])
 
-  // Distribution of soil types across the user's farms for the chart.
   const soilDistribution = useMemo(() => {
     const counts: Record<string, number> = {}
     farms.forEach((f) => {
@@ -64,93 +71,107 @@ const CropCare = () => {
 
   return (
     <DashboardLayout>
+      <div className="p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-semibold text-gray-800">Crop Care</h1>
+        </div>
 
-        <div className="p-4 sm:p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-semibold text-gray-800">Crop Care</h1>
+        {!entitlements.aiRecommendations && (
+          <div className="mb-6">
+            <PlanUpgradeBanner
+              title="AI crop recommendations are on Pro"
+              description="Starter includes basic farm & soil overview. Upgrade for personalised AI disease and crop tips."
+            />
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Crop Care Recommendations</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {!entitlements.aiRecommendations ? (
+                  <p className="py-6 text-sm text-gray-500">
+                    AI recommendations unlock on Pro. Your soil overview and live temperature remain
+                    available on Starter.
+                  </p>
+                ) : loading ? (
+                  <div className="flex justify-center py-10">
+                    <Loader2 className="h-6 w-6 animate-spin text-[#2C6E49]" />
+                  </div>
+                ) : recommendations.length === 0 ? (
+                  <p className="py-6 text-sm text-gray-500">
+                    No recommendations yet. Add farm details in Settings and check back for crop care
+                    advice.
+                  </p>
+                ) : (
+                  <div className="overflow-hidden rounded-md border">
+                    <Table>
+                      <TableHeader className="bg-[#377552]">
+                        <TableRow>
+                          <TableHead className="font-medium text-white">Type</TableHead>
+                          <TableHead className="font-medium text-white">Recommendation</TableHead>
+                          <TableHead className="font-medium text-white">Date</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {recommendations.map((rec, index) => (
+                          <TableRow
+                            key={rec.id || index}
+                            className={index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}
+                          >
+                            <TableCell className="font-medium capitalize text-[#377552]">
+                              {rec.type || "general"}
+                            </TableCell>
+                            <TableCell>
+                              {rec.title || rec.description || rec.content || "—"}
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-500">
+                              {rec.createdAt
+                                ? new Date(rec.createdAt).toLocaleDateString()
+                                : "—"}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Crop Care Recommendations</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {loading ? (
-                    <div className="flex justify-center py-10">
-                      <Loader2 className="h-6 w-6 animate-spin text-[#2C6E49]" />
-                    </div>
-                  ) : recommendations.length === 0 ? (
-                    <p className="text-sm text-gray-500 py-6">
-                      No recommendations yet. Add farm details in Settings and check back for crop care advice.
-                    </p>
-                  ) : (
-                    <div className="rounded-md border overflow-hidden">
-                      <Table>
-                        <TableHeader className="bg-[#377552]">
-                          <TableRow>
-                            <TableHead className="text-white font-medium">Type</TableHead>
-                            <TableHead className="text-white font-medium">Recommendation</TableHead>
-                            <TableHead className="text-white font-medium">Date</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {recommendations.map((rec, index) => (
-                            <TableRow
-                              key={rec.id || index}
-                              className={index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}
-                            >
-                              <TableCell className="font-medium capitalize text-[#377552]">
-                                {rec.type || "general"}
-                              </TableCell>
-                              <TableCell>
-                                {rec.title || rec.description || rec.content || "—"}
-                              </TableCell>
-                              <TableCell className="text-sm text-gray-500">
-                                {rec.createdAt
-                                  ? new Date(rec.createdAt).toLocaleDateString()
-                                  : "—"}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="space-y-6">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Soil Types Across Farms</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <YieldChart
-                    labels={soilDistribution.labels}
-                    values={soilDistribution.values}
-                    seriesLabel="Farms"
-                  />
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Field Temperature</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <TemperatureGauge value={gaugeTemp} />
-                  <p className="text-center text-xs text-gray-400 mt-2">
-                    {weather
-                      ? `Live from ${weather.location.name}`
-                      : "Loading live temperature…"}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
+          <div className="space-y-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Soil Types Across Farms</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <YieldChart
+                  labels={soilDistribution.labels}
+                  values={soilDistribution.values}
+                  seriesLabel="Farms"
+                />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Field Temperature</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TemperatureGauge value={gaugeTemp} />
+                <p className="mt-2 text-center text-xs text-gray-400">
+                  {weather
+                    ? `Live from ${weather.location.name}`
+                    : "Loading live temperature…"}
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
+      </div>
     </DashboardLayout>
   )
 }

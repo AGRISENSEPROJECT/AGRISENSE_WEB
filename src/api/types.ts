@@ -754,6 +754,9 @@ export interface PlanLimits {
   maxFarms?: number | null;
   weatherDays?: number | null;
   aiRecommendations?: boolean;
+  marketInsights?: boolean;
+  prioritySupport?: boolean;
+  unlimitedSoilReports?: boolean;
   [key: string]: unknown;
 }
 
