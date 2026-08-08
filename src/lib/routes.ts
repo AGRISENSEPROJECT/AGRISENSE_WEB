@@ -63,6 +63,8 @@ export const routes = {
     root: "/ngo",
     programs: "/ngo/programs",
     regions: "/ngo/regions",
+    diseaseRisk: "/ngo/disease-risk",
+    advisories: "/ngo/advisories",
     farmers: "/ngo/farmers",
     reports: "/ngo/reports",
     notifications: "/ngo/notifications",

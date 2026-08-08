@@ -532,6 +532,11 @@ export interface CreateOrgAccountDto {
   phoneNumber?: string;
   businessName?: string;
   organizationName?: string;
+  description?: string;
+  registrationNumber?: string;
+  website?: string;
+  assignedRegions?: string[];
+  focusAreas?: string[];
   autoApprove?: boolean;
 }
 
@@ -553,3 +558,178 @@ export interface AdminOverviewStatistics {
   reportedPosts?: number;
   [key: string]: unknown;
 }
+
+// ---------------------------------------------------------------------------
+// NGO / Government regional portal
+// ---------------------------------------------------------------------------
+
+export interface NgoProfile {
+  id?: string;
+  organizationName?: string;
+  description?: string;
+  registrationNumber?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  website?: string;
+  focusAreas?: string[];
+  assignedRegions?: string[];
+  status?: string;
+  isApproved?: boolean;
+  [key: string]: unknown;
+}
+
+export interface UpdateNgoProfileDto {
+  organizationName?: string;
+  description?: string;
+  registrationNumber?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  website?: string;
+  focusAreas?: string[];
+}
+
+export interface NgoProgram {
+  id: string;
+  title?: string;
+  name?: string;
+  description?: string;
+  targetRegions?: string[];
+  budget?: string | number;
+  startDate?: string;
+  endDate?: string;
+  isActive?: boolean;
+  status?: string;
+  farmersReached?: number;
+  progress?: number;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
+export interface CreateProgramDto {
+  title: string;
+  description?: string;
+  targetRegions?: string[];
+  budget?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface UpdateProgramDto {
+  title?: string;
+  description?: string;
+  isActive?: boolean;
+}
+
+export interface OrgStatistics {
+  totalFarmers?: number;
+  totalFarms?: number;
+  activeFarms?: number;
+  regionsCovered?: number;
+  activePrograms?: number;
+  averageFarmSize?: number;
+  cropsCultivated?: number;
+  diseaseAlerts?: number;
+  [key: string]: unknown;
+}
+
+export interface RegionalStatRow {
+  region?: string;
+  province?: string;
+  district?: string;
+  name?: string;
+  farms?: number;
+  totalFarms?: number;
+  farmers?: number;
+  totalFarmers?: number;
+  mainCrop?: string;
+  crop?: string;
+  diseaseRisk?: string;
+  harvestProgress?: number | string;
+  averageFarmSize?: number;
+  [key: string]: unknown;
+}
+
+export interface DiseaseTrendItem {
+  id?: string;
+  disease?: string;
+  diseaseName?: string;
+  crop?: string;
+  region?: string;
+  province?: string;
+  district?: string;
+  affectedFarms?: number;
+  percentage?: number;
+  severity?: string;
+  trend?: string;
+  confidence?: number;
+  recommendation?: string;
+  [key: string]: unknown;
+}
+
+export interface OrgFarmerSummary {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phoneNumber?: string;
+  province?: string;
+  district?: string;
+  farmsCount?: number;
+  [key: string]: unknown;
+}
+
+export interface OrgFarmSummary {
+  id: string;
+  name?: string;
+  farmName?: string;
+  province?: string;
+  district?: string;
+  cropType?: string;
+  crop?: string;
+  size?: number;
+  sizeHa?: number;
+  status?: string;
+  [key: string]: unknown;
+}
+
+export interface GovernmentAdvisory {
+  id: string;
+  title?: string;
+  content?: string;
+  type?: "GENERAL" | "WEATHER" | "DISEASE" | "EMERGENCY" | "FOOD_SECURITY" | string;
+  targetRegions?: string[];
+  isPublished?: boolean;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
+export interface CreateAdvisoryDto {
+  title: string;
+  content: string;
+  type: "GENERAL" | "WEATHER" | "DISEASE" | "EMERGENCY" | "FOOD_SECURITY";
+  targetRegions?: string[];
+}
+
+export interface UpdateAdvisoryDto {
+  title?: string;
+  content?: string;
+  isPublished?: boolean;
+}
+
+export interface SendOrgNotificationDto {
+  title?: string;
+  message?: string;
+  content?: string;
+  targetRegions?: string[];
+  crop?: string;
+  [key: string]: unknown;
+}
+
+export const RWANDA_PROVINCES = [
+  "Northern Province",
+  "Southern Province",
+  "Eastern Province",
+  "Western Province",
+  "Kigali City",
+] as const;
+

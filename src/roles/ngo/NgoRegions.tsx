@@ -1,70 +1,242 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Loader2 } from "lucide-react";
 import RoleLayout from "../RoleLayout";
-import { Panel } from "../ui";
+import { Panel, Badge, PaginationControls, getPaginationMeta } from "../ui";
 import { NGO_ACCENT, ngoLinks } from "./config";
-import { ngoRegions } from "./mock";
+import { extractRows, num, useOrgPortal } from "./useOrgPortal";
+import {
+  ApiError,
+  RWANDA_PROVINCES,
+  type OrgFarmSummary,
+  type RegionalStatRow,
+} from "@/api";
+
+const PAGE_SIZE = 20;
+
+function regionName(row: RegionalStatRow) {
+  return row.province || row.region || row.district || row.name || "Unknown";
+}
 
 const NgoRegions = () => {
-  useEffect(() => {
-    document.title = "Regions | NGO/Gov | AGRISENSE";
-  }, []);
+  const portal = useOrgPortal();
+  const [province, setProvince] = useState<string>(RWANDA_PROVINCES[0]);
+  const [regional, setRegional] = useState<RegionalStatRow[]>([]);
+  const [farms, setFarms] = useState<OrgFarmSummary[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [farmsLoading, setFarmsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const totalFarmers = ngoRegions.reduce((s, r) => s + r.farmers, 0);
-  const totalHectares = ngoRegions.reduce((s, r) => s + r.hectares, 0);
+  useEffect(() => {
+    document.title = `Regional Intelligence | ${portal.label} | AGRISENSE`;
+  }, [portal.label]);
+
+  useEffect(() => {
+    if (!portal.isGovernment) return;
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await portal.government.getRegionalStatistics();
+        setRegional(extractRows<RegionalStatRow>(res, ["regions", "items", "data"]));
+      } catch (err) {
+        setError(err instanceof ApiError ? err.message : "Failed to load regional stats.");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [portal]);
+
+  const loadFarms = async (nextPage = 1, nextProvince = province) => {
+    setFarmsLoading(true);
+    setError(null);
+    try {
+      const res = await portal.getFarms(nextPage, PAGE_SIZE, nextProvince);
+      const rows = extractRows<OrgFarmSummary>(res, ["farms", "items", "data"]);
+      const meta = getPaginationMeta(res, nextPage, PAGE_SIZE, rows.length);
+      setFarms(rows);
+      setPage(meta.page);
+      setTotalPages(meta.totalPages);
+      setTotal(meta.total);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to load farms for province.");
+      setFarms([]);
+    } finally {
+      setFarmsLoading(false);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadFarms(1, province);
+  }, [province, portal.role]);
+
+  const cropCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    farms.forEach((farm) => {
+      const crop = String(farm.cropType || farm.crop || "Unknown");
+      map.set(crop, (map.get(crop) || 0) + 1);
+    });
+    return [...map.entries()].sort((a, b) => b[1] - a[1]);
+  }, [farms]);
 
   return (
     <RoleLayout
       links={ngoLinks}
-      roleLabel="NGO / Government"
+      roleLabel={portal.roleLabel}
       accent={NGO_ACCENT}
-      title="Regional Coverage"
-      subtitle="Reach and land area monitored across regions."
+      title="Regional Agricultural Intelligence"
+      subtitle="Select a province to view aggregated farm and crop activity in assigned regions."
     >
-      <Panel>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b text-left text-xs uppercase text-gray-400">
-                <th className="pb-2 font-medium">Region</th>
-                <th className="pb-2 font-medium">Farmers</th>
-                <th className="pb-2 font-medium">Hectares</th>
-                <th className="pb-2 font-medium">Share</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ngoRegions.map((r) => (
-                <tr key={r.region} className="border-b last:border-0">
-                  <td className="py-3 font-medium text-gray-800">{r.region}</td>
-                  <td className="py-3 text-gray-600">{r.farmers.toLocaleString()}</td>
-                  <td className="py-3 text-gray-600">{r.hectares.toLocaleString()}</td>
-                  <td className="py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-28 overflow-hidden rounded-full bg-gray-100">
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${Math.round((r.farmers / totalFarmers) * 100)}%`,
-                            backgroundColor: NGO_ACCENT,
-                          }}
-                        />
-                      </div>
-                      <span className="text-xs text-gray-500">
-                        {Math.round((r.farmers / totalFarmers) * 100)}%
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              <tr className="font-semibold text-gray-800">
-                <td className="pt-3">Total</td>
-                <td className="pt-3">{totalFarmers.toLocaleString()}</td>
-                <td className="pt-3">{totalHectares.toLocaleString()}</td>
-                <td className="pt-3">100%</td>
-              </tr>
-            </tbody>
-          </table>
+      {error && (
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
         </div>
-      </Panel>
+      )}
+
+      {portal.isGovernment && (
+        <Panel title="Regional comparison" className="mb-6">
+          {loading && regional.length === 0 ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin" style={{ color: NGO_ACCENT }} />
+            </div>
+          ) : regional.length === 0 ? (
+            <p className="text-sm text-gray-500">No regional comparison data available yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-xs uppercase text-gray-400">
+                    <th className="pb-2">Region</th>
+                    <th className="pb-2">Farms</th>
+                    <th className="pb-2">Farmers</th>
+                    <th className="pb-2">Main crop</th>
+                    <th className="pb-2">Disease risk</th>
+                    <th className="pb-2">Harvest progress</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {regional.map((row, idx) => (
+                    <tr key={`${regionName(row)}-${idx}`} className="border-b last:border-0">
+                      <td className="py-3 font-medium text-gray-800">{regionName(row)}</td>
+                      <td className="py-3">{num(row.farms ?? row.totalFarms).toLocaleString()}</td>
+                      <td className="py-3">
+                        {num(row.farmers ?? row.totalFarmers).toLocaleString()}
+                      </td>
+                      <td className="py-3">{row.mainCrop || row.crop || "—"}</td>
+                      <td className="py-3">
+                        <Badge
+                          color={
+                            String(row.diseaseRisk || "").toLowerCase().includes("high")
+                              ? "red"
+                              : String(row.diseaseRisk || "").toLowerCase().includes("medium")
+                                ? "amber"
+                                : "green"
+                          }
+                        >
+                          {row.diseaseRisk || "—"}
+                        </Badge>
+                      </td>
+                      <td className="py-3">{row.harvestProgress ?? "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Panel>
+      )}
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {RWANDA_PROVINCES.map((p) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => setProvince(p)}
+            className="rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors"
+            style={
+              province === p
+                ? { backgroundColor: NGO_ACCENT, color: "#fff", borderColor: NGO_ACCENT }
+                : { color: "#4b5563" }
+            }
+          >
+            {p}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Panel title={`Crop monitoring · ${province}`} className="lg:col-span-1">
+          {cropCounts.length === 0 ? (
+            <p className="text-sm text-gray-500">No crop activity in this page of results.</p>
+          ) : (
+            <ul className="space-y-2">
+              {cropCounts.map(([crop, count]) => (
+                <li
+                  key={crop}
+                  className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm"
+                >
+                  <span className="font-medium text-gray-800">{crop}</span>
+                  <span className="text-gray-500">{count.toLocaleString()} farms</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-3 text-xs text-gray-400">
+            Counts reflect the current results page (aggregated crop labels only).
+          </p>
+        </Panel>
+
+        <Panel title="Farms in region (aggregated)" className="lg:col-span-2">
+          {farmsLoading ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="h-6 w-6 animate-spin" style={{ color: NGO_ACCENT }} />
+            </div>
+          ) : farms.length === 0 ? (
+            <p className="text-sm text-gray-500">No farms returned for this province.</p>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left text-xs uppercase text-gray-400">
+                      <th className="pb-2">Farm</th>
+                      <th className="pb-2">District</th>
+                      <th className="pb-2">Crop</th>
+                      <th className="pb-2">Size (ha)</th>
+                      <th className="pb-2">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {farms.map((farm) => (
+                      <tr key={farm.id} className="border-b last:border-0">
+                        <td className="py-3 font-medium text-gray-800">
+                          {farm.name || farm.farmName || farm.id}
+                        </td>
+                        <td className="py-3 text-gray-600">{farm.district || "—"}</td>
+                        <td className="py-3">{farm.cropType || farm.crop || "—"}</td>
+                        <td className="py-3">{farm.sizeHa ?? farm.size ?? "—"}</td>
+                        <td className="py-3">
+                          <Badge color="green">{farm.status || "Active"}</Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <PaginationControls
+                page={page}
+                totalPages={totalPages}
+                total={total}
+                limit={PAGE_SIZE}
+                disabled={farmsLoading}
+                onPageChange={(next) => loadFarms(next, province)}
+              />
+            </>
+          )}
+        </Panel>
+      </div>
     </RoleLayout>
   );
 };
