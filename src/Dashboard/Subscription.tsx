@@ -2,11 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Check,
+  CheckCircle2,
   CreditCard,
+  Info,
   Loader2,
   Lock,
   Shield,
   Smartphone,
+  AlertCircle,
 } from "lucide-react";
 import DashboardLayout from "./DashboardLayout";
 import { routes } from "@/lib/routes";
@@ -31,6 +34,64 @@ import { useAuth } from "@/context/useAuth";
 type PayMethod = "momo" | "airtel" | "card";
 
 const CHECKOUT_KEY = "agrisense.pending_checkout";
+
+/** Turn backend/sandbox payment copy into user-facing text. */
+function friendlyPaymentMessage(
+  raw?: string | null,
+  method?: PayMethod,
+): { text: string; sandbox: boolean } {
+  const message = (raw || "").trim();
+  const sandbox =
+    /sandbox|tx_ref|webhook|flutterwave|simulator|POST\s*\/api/i.test(message);
+
+  if (sandbox) {
+    if (method === "momo" || method === "airtel") {
+      return {
+        sandbox: true,
+        text: "Payment started. Approve the prompt on your phone. We’ll activate Pro as soon as payment succeeds.",
+      };
+    }
+    return {
+      sandbox: true,
+      text: "Payment started. Complete checkout to activate Pro. We’ll update your plan automatically when it succeeds.",
+    };
+  }
+
+  if (!message) {
+    return {
+      sandbox: false,
+      text:
+        method === "card"
+          ? "Complete card payment to activate Pro."
+          : "Approve the payment prompt on your phone. We’ll activate Pro when payment succeeds.",
+    };
+  }
+
+  return { sandbox: false, text: message };
+}
+
+function StatusBanner({
+  tone,
+  children,
+}: {
+  tone: "success" | "error" | "info";
+  children: React.ReactNode;
+}) {
+  const styles =
+    tone === "success"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+      : tone === "error"
+        ? "border-red-200 bg-red-50 text-red-800"
+        : "border-sky-200 bg-sky-50 text-sky-900";
+  const Icon = tone === "success" ? CheckCircle2 : tone === "error" ? AlertCircle : Info;
+
+  return (
+    <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm shadow-sm ${styles}`}>
+      <Icon className="mt-0.5 h-4 w-4 shrink-0 opacity-80" />
+      <div className="min-w-0 leading-relaxed">{children}</div>
+    </div>
+  );
+}
 
 const FALLBACK_PLANS: Array<{
   id: BillingPlanId;
@@ -148,6 +209,7 @@ const Subscription = () => {
   const [cardCvc, setCardCvc] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [sandboxWaiting, setSandboxWaiting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [polling, setPolling] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -232,6 +294,7 @@ const Subscription = () => {
       if (status === "active" || status === "successful" || status === "success") {
         sessionStorage.removeItem(CHECKOUT_KEY);
         stopPolling();
+        setSandboxWaiting(false);
         const sub = result.subscription || (await billingService.getSubscription());
         await applySubscription(sub);
         setInfo("Payment confirmed. Your Pro plan is now active.");
@@ -241,6 +304,7 @@ const Subscription = () => {
       if (status === "failed" || status === "canceled" || status === "expired") {
         sessionStorage.removeItem(CHECKOUT_KEY);
         stopPolling();
+        setSandboxWaiting(false);
         setError("Payment did not complete. Your previous plan is unchanged.");
         await reload();
         return true;
@@ -355,6 +419,7 @@ const Subscription = () => {
     e.preventDefault();
     setError(null);
     setInfo(null);
+    setSandboxWaiting(false);
 
     if (plan === "enterprise") {
       if (!orgName.trim() || !contactName.trim() || !contactEmail.trim() || !enterpriseMessage.trim()) {
@@ -418,10 +483,9 @@ const Subscription = () => {
         return;
       }
 
-      setInfo(
-        result.payment?.message ||
-          "Approve the payment prompt on your phone. We will activate Pro when payment succeeds.",
-      );
+      const friendly = friendlyPaymentMessage(result.payment?.message, method);
+      setSandboxWaiting(friendly.sandbox);
+      setInfo(friendly.text);
       startPolling(result.checkoutId);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Checkout failed. Please try again.");
@@ -436,6 +500,7 @@ const Subscription = () => {
     setSaving(true);
     setError(null);
     setInfo(null);
+    setSandboxWaiting(false);
     try {
       const res = await billingService.cancel({ atPeriodEnd });
       await applySubscription(unwrapSub(res) || (await billingService.getSubscription()));
@@ -455,6 +520,7 @@ const Subscription = () => {
     setSaving(true);
     setError(null);
     setInfo(null);
+    setSandboxWaiting(false);
     try {
       const res = await billingService.resume();
       await applySubscription(unwrapSub(res) || (await billingService.getSubscription()));
@@ -846,14 +912,31 @@ const Subscription = () => {
                 )}
 
                 {error && (
-                  <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                    {error}
-                  </p>
+                  <StatusBanner tone="error">{error}</StatusBanner>
                 )}
                 {info && (
-                  <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-                    {info}
-                  </p>
+                  <StatusBanner
+                    tone={
+                      /confirmed|starter plan|resumed|sent|scheduled|canceled/i.test(info)
+                        ? "success"
+                        : "info"
+                    }
+                  >
+                    <p className="font-medium">
+                      {polling || sandboxWaiting
+                        ? "Waiting for payment"
+                        : /confirmed/i.test(info)
+                          ? "Payment successful"
+                          : "Status"}
+                    </p>
+                    <p className="mt-0.5 opacity-90">{info}</p>
+                    {(polling || sandboxWaiting) && (
+                      <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium opacity-80">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        Checking payment status…
+                      </p>
+                    )}
+                  </StatusBanner>
                 )}
               </div>
 
