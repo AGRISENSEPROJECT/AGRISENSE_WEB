@@ -271,6 +271,105 @@ export interface CreateCommentDto {
 }
 
 // ---------------------------------------------------------------------------
+// Community chat (direct + group)
+// ---------------------------------------------------------------------------
+
+export type ConversationType = "direct" | "group";
+
+export interface ChatUserSummary {
+  id: string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  profileImage?: string | null;
+  [key: string]: unknown;
+}
+
+export interface ConversationMember {
+  id?: string;
+  userId?: string;
+  role?: string;
+  muted?: boolean;
+  lastReadAt?: string | null;
+  user?: ChatUserSummary;
+  [key: string]: unknown;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversationId?: string;
+  content: string;
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string | null;
+  senderId?: string;
+  sender?: ChatUserSummary;
+  author?: ChatUserSummary;
+  user?: ChatUserSummary;
+  [key: string]: unknown;
+}
+
+export interface Conversation {
+  id: string;
+  type?: ConversationType | string;
+  name?: string | null;
+  imageUrl?: string | null;
+  createdById?: string;
+  creatorId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  members?: ConversationMember[];
+  participants?: ChatUserSummary[];
+  lastMessage?: ChatMessage | null;
+  unreadCount?: number;
+  muted?: boolean;
+  [key: string]: unknown;
+}
+
+export interface CreateDirectConversationDto {
+  userId: string;
+}
+
+export interface CreateGroupConversationDto {
+  name: string;
+  memberIds: string[];
+}
+
+export interface UpdateGroupDto {
+  name: string;
+}
+
+export interface GroupMembersDto {
+  memberIds: string[];
+}
+
+export interface MuteConversationDto {
+  muted?: boolean;
+}
+
+export interface SendMessageDto {
+  content: string;
+}
+
+export interface ConversationsResponse {
+  conversations?: Conversation[];
+  items?: Conversation[];
+  data?: Conversation[];
+  [key: string]: unknown;
+}
+
+export interface ChatMessagesResponse {
+  messages?: ChatMessage[];
+  items?: ChatMessage[];
+  data?: ChatMessage[];
+  page?: number;
+  limit?: number;
+  total?: number;
+  [key: string]: unknown;
+}
+
+// ---------------------------------------------------------------------------
 // Predictions
 // ---------------------------------------------------------------------------
 
