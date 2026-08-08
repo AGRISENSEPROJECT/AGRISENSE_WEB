@@ -1,7 +1,7 @@
 import type { FC } from "react"
 import { ArrowRight } from "lucide-react"
 import { Card } from "@/components/ui/card"
-import AboutUsImage from "/assets/about us.png"
+import AboutUsImage from "/assets/about-us-team.png"
 
 const AboutUs: FC = () => {
   return (
@@ -12,8 +12,8 @@ const AboutUs: FC = () => {
         <div className="w-full h-full rounded-lg overflow-hidden">
           <img
             src={AboutUsImage || "/placeholder.svg"}
-            alt="Tree in water drop"
-            className="object-cover w-full h-full"
+            alt="AgriSense team in the field"
+            className="object-cover object-[center_20%] w-full h-full"
           />
         </div>
 

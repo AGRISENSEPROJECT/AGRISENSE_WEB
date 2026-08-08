@@ -18,7 +18,7 @@ import {
 import Navbar from "../Navbar/Navbar";
 import Footer from "../Footer";
 import { useGetStarted } from "@/hooks/useGetStarted";
-import AboutUsImage from "/assets/about us.png";
+import AboutUsImage from "/assets/about-us-team.png";
 import FarmerImage from "/assets/who-we-serve-farmer.png";
 
 const values = [
@@ -170,8 +170,8 @@ const AboutPage = () => {
             <div className="overflow-hidden rounded-2xl shadow-lg">
               <img
                 src={AboutUsImage}
-                alt="AgriSense in the field"
-                className="h-64 w-full object-cover object-center sm:h-72 md:h-80"
+                alt="AgriSense team in the field"
+                className="h-64 w-full object-cover object-[center_25%] sm:h-72 md:h-96"
               />
             </div>
             <div className="absolute -bottom-5 -right-3 hidden rounded-xl bg-[#2C6E49] px-4 py-3 text-white shadow-lg sm:block">
