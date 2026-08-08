@@ -15,3 +15,5 @@ export { marketplaceService } from "./services/marketplace";
 export { notificationService } from "./services/notifications";
 export { communityService } from "./services/community";
 export { predictionService } from "./services/predictions";
+export { ngoService } from "./services/ngo";
+export { governmentService } from "./services/government";

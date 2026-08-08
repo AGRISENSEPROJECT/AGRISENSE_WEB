@@ -46,8 +46,12 @@ import { AdminSuppliers, AdminAnalytics, AdminSettings } from './roles/admin/Adm
 import NgoDashboard from './roles/ngo/NgoDashboard'
 import NgoPrograms from './roles/ngo/NgoPrograms'
 import NgoRegions from './roles/ngo/NgoRegions'
+import NgoDiseaseRisk from './roles/ngo/NgoDiseaseRisk'
+import NgoAdvisories from './roles/ngo/NgoAdvisories'
+import NgoFarmers from './roles/ngo/NgoFarmers'
+import NgoReports from './roles/ngo/NgoReports'
 import NgoNotifications from './roles/ngo/NgoNotifications'
-import { NgoFarmers, NgoReports, NgoSettings } from './roles/ngo/NgoPlaceholders'
+import NgoSettings from './roles/ngo/NgoSettings'
 
 // Supplier portal extras
 import SupplierNotifications from './roles/supplier/SupplierNotifications'
@@ -112,6 +116,8 @@ function App() {
       <Route path={routes.ngo.root} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoDashboard /></ProtectedRoute>} />
       <Route path={routes.ngo.programs} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoPrograms /></ProtectedRoute>} />
       <Route path={routes.ngo.regions} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoRegions /></ProtectedRoute>} />
+      <Route path={routes.ngo.diseaseRisk} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoDiseaseRisk /></ProtectedRoute>} />
+      <Route path={routes.ngo.advisories} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoAdvisories /></ProtectedRoute>} />
       <Route path={routes.ngo.farmers} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoFarmers /></ProtectedRoute>} />
       <Route path={routes.ngo.reports} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoReports /></ProtectedRoute>} />
       <Route path={routes.ngo.notifications} element={<ProtectedRoute allowRoles={['NGO', 'GOVERNMENT']}><NgoNotifications /></ProtectedRoute>} />
