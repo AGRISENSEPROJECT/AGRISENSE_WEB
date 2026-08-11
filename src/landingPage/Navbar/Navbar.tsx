@@ -36,6 +36,12 @@ const Navbar = () => {
 
   return (
     <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[70] focus:rounded-md focus:bg-white focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-[#2C6E49]"
+      >
+        Skip to content
+      </a>
       <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/85 backdrop-blur-md supports-[backdrop-filter]:bg-white/70">
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-10">
           <Link to={routes.home} className="flex shrink-0 items-center" onClick={closeMenu}>

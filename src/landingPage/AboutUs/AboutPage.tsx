@@ -110,7 +110,6 @@ const AboutPage = () => {
   const { to: ctaTo, label: ctaLabel } = useGetStarted();
 
   useEffect(() => {
-    document.title = "About Us | AGRISENSE";
     window.scrollTo(0, 0);
   }, []);
 

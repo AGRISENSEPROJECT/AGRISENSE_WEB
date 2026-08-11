@@ -12,14 +12,13 @@ const PublicLayout = ({
   children: ReactNode;
 }) => {
   useEffect(() => {
-    document.title = `${title} | AGRISENSE`;
     window.scrollTo(0, 0);
   }, [title]);
 
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      {children}
+      <main id="main-content">{children}</main>
       <Footer />
       <AppDownloadFab />
     </div>
