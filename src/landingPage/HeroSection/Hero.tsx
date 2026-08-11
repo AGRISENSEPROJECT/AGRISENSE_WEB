@@ -20,10 +20,15 @@ export default function HeroSection() {
     const { to: ctaTo, label: ctaLabel } = useGetStarted()
     return (
         <div className="relative mb-48 sm:mb-56 md:mb-64 lg:mb-56 w-full">
-            <div
-                className="relative bg-cover bg-center min-h-[600px] sm:min-h-[640px] w-full flex flex-col"
-                style={{ backgroundImage: `url(${HeroImage})` }}
-            >
+            <div className="relative min-h-[600px] sm:min-h-[640px] w-full flex flex-col overflow-hidden">
+                <img
+                    src={HeroImage}
+                    alt="Rwandan farmers in the field using AgriSense smart farming tools"
+                    className="absolute inset-0 h-full w-full object-cover"
+                    fetchPriority="high"
+                    width={1920}
+                    height={1080}
+                />
                 {/* Brand gradient overlay for legibility + cohesion */}
                 <div className="absolute inset-0 bg-gradient-to-br from-[#052e1a]/85 via-[#0b3d24]/70 to-[#0b6e4f]/40" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />

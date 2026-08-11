@@ -11,17 +11,19 @@ import SmartFarming from './smartFarmingBlog/smartFarming';
 import WeatherSection from './WeatherSection'
 import TestimonialCarousel from './Testimonies'
 import Waitlist from './Waitlist'
+import FaqSection from './FaqSection'
 import Footer from './Footer'
 import AppDownloadFab from '@/components/AppDownloadFab'
 import { useEffect } from 'react'
 
 const LandingPage = () => {
       useEffect(() => {
-        document.title = 'Landing | AGRISENSE';
+        window.scrollTo(0, 0);
       }, []);
   return (
     <div id="home">
       <Navbar />
+      <main id="main-content">
       <HeroSection />
       <div id="about">
         <AboutUs />
@@ -39,6 +41,8 @@ const LandingPage = () => {
       <WeatherSection />
       <TestimonialCarousel />
       <Waitlist />
+      <FaqSection />
+      </main>
       <div id="contact">
         <Footer />
       </div>

@@ -18,6 +18,8 @@ import AboutPage from './landingPage/AboutUs/AboutPage'
 import ServicesPage from './landingPage/Popular-Services/ServicesPage'
 import BlogPage from './landingPage/smartFarmingBlog/BlogPage'
 import ContactPage from './landingPage/ContactPage'
+import BlogPostPage from './landingPage/smartFarmingBlog/BlogPostPage'
+import NotFound from './landingPage/NotFound'
 import LandingPageChart from './testCharts/LandingPageChart'
 import SignUp from './auth/SignUp'
 import SignIn from './auth/SignIn'
@@ -28,6 +30,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import TermsOfService from './legal/TermsOfService'
 import PrivacyPolicy from './legal/PrivacyPolicy'
 import { routes } from './lib/routes'
+import Seo from './components/Seo'
 
 // Supplier portal
 import SupplierDashboard from './roles/supplier/SupplierDashboard'
@@ -60,12 +63,15 @@ import SupplierNotifications from './roles/supplier/SupplierNotifications'
 
 function App() {
   return (
-    <Routes>
+    <>
+      <Seo />
+      <Routes>
       {/* Public */}
       <Route path={routes.home} element={<LandingPage />} />
       <Route path={routes.about} element={<AboutPage />} />
       <Route path={routes.services} element={<ServicesPage />} />
       <Route path={routes.blog} element={<BlogPage />} />
+      <Route path={`${routes.blog}/:slug`} element={<BlogPostPage />} />
       <Route path={routes.contact} element={<ContactPage />} />
       <Route path="/testCharts" element={<LandingPageChart />} />
 
@@ -144,7 +150,9 @@ function App() {
       <Route path="/community" element={<Navigate to={routes.app.community} replace />} />
       <Route path="/help-and-support" element={<Navigate to={routes.app.help} replace />} />
       <Route path="/settings" element={<Navigate to={routes.app.settings} replace />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
+    </>
   )
 }
 

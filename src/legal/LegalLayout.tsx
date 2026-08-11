@@ -17,7 +17,6 @@ interface LegalLayoutProps {
 
 const LegalLayout = ({ title, lastUpdated, intro, sections, children }: LegalLayoutProps) => {
   useEffect(() => {
-    document.title = `${title} | AGRISENSE`;
     window.scrollTo(0, 0);
   }, [title]);
 

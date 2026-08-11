@@ -15,6 +15,14 @@ const PAGE_SIZE = 20;
 
 type Tab = "subscriptions" | "transactions";
 
+interface BillingUser {
+  id?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  name?: string;
+}
+
 interface BillingRow {
   id?: string;
   userId?: string;
@@ -22,6 +30,8 @@ interface BillingRow {
   userEmail?: string;
   userName?: string;
   name?: string;
+  firstName?: string;
+  lastName?: string;
   planId?: string;
   status?: string;
   billingCycle?: string;
@@ -35,6 +45,8 @@ interface BillingRow {
   cancelAtPeriodEnd?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  /** Nested user from admin billing API */
+  user?: BillingUser | null;
   [key: string]: unknown;
 }
 
@@ -49,18 +61,39 @@ function unwrapRows(data: unknown, keys: string[]): BillingRow[] {
   return [];
 }
 
+function nestedUser(row: BillingRow): BillingUser | null {
+  if (row.user && typeof row.user === "object") return row.user;
+  return null;
+}
+
+function rowUserId(row: BillingRow): string | undefined {
+  const nested = nestedUser(row);
+  const id = nested?.id || row.userId;
+  return id ? String(id) : undefined;
+}
+
 function displayUser(row: BillingRow) {
+  const nested = nestedUser(row);
+  const fullName = [nested?.firstName || row.firstName, nested?.lastName || row.lastName]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+  const userId = rowUserId(row);
   return (
+    fullName ||
+    nested?.name ||
     row.userName ||
     row.name ||
+    nested?.email ||
     row.userEmail ||
     row.email ||
-    (row.userId ? `User ${String(row.userId).slice(0, 8)}…` : "—")
+    (userId ? `User ${userId.slice(0, 8)}…` : "—")
   );
 }
 
 function displayEmail(row: BillingRow) {
-  return row.userEmail || row.email || "—";
+  const nested = nestedUser(row);
+  return nested?.email || row.userEmail || row.email || "—";
 }
 
 function formatMoney(amount?: number, currency = "RWF") {
@@ -406,8 +439,10 @@ const AdminBilling = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((row, index) => (
-                    <tr key={row.id || `${row.userId}-${index}`} className="border-b last:border-0">
+                  {rows.map((row, index) => {
+                    const userId = rowUserId(row);
+                    return (
+                    <tr key={row.id || `${userId || "row"}-${index}`} className="border-b last:border-0">
                       <td className="py-3 font-medium text-gray-800">{displayUser(row)}</td>
                       <td className="py-3 text-gray-500">{displayEmail(row)}</td>
                       {tab === "subscriptions" ? (
@@ -430,10 +465,10 @@ const AdminBilling = () => {
                               : "—"}
                           </td>
                           <td className="py-3">
-                            {row.userId && String(row.planId || "").toLowerCase() !== "starter" ? (
+                            {userId && String(row.planId || "").toLowerCase() !== "starter" ? (
                               <button
                                 type="button"
-                                onClick={() => runRevoke(row.userId)}
+                                onClick={() => runRevoke(userId)}
                                 className="rounded-md border border-red-200 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
                               >
                                 Revoke
@@ -465,7 +500,8 @@ const AdminBilling = () => {
                         </>
                       )}
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
