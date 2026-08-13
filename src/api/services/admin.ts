@@ -39,8 +39,15 @@ export const adminService = {
       role?: AdminUserRole;
       status?: AdminUserStatus;
       search?: string;
+      includeDeleted?: boolean;
     } = {},
-  ) => api.get<AdminUsersResponse>(`/admin/users${buildQuery(params)}`),
+  ) =>
+    api.get<AdminUsersResponse>(
+      `/admin/users${buildQuery({
+        ...params,
+        includeDeleted: params.includeDeleted ? "true" : undefined,
+      })}`,
+    ),
 
   getUserById: (id: string) =>
     api.get<AdminUserSummary>(`/admin/users/${id}`),

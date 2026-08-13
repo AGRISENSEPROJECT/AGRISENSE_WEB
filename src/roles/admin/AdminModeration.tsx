@@ -4,6 +4,7 @@ import RoleLayout from "../RoleLayout";
 import { Panel, PaginationControls, getPaginationMeta } from "../ui";
 import { ADMIN_ACCENT, adminLinks } from "./config";
 import { adminService, ApiError, type AdminReportItem } from "@/api";
+import { getUserDisplayName } from "@/lib/user";
 
 const PAGE_SIZE = 20;
 
@@ -111,7 +112,7 @@ const AdminModeration = () => {
                         &quot;{m.excerpt || m.description || "No description"}&quot;
                       </p>
                       <p className="mt-1 text-xs text-gray-400">
-                        {(m.author?.firstName || m.author?.username || "Unknown user")} · reported{" "}
+                        {getUserDisplayName(m.author) || "Unknown user"} · reported{" "}
                         {m.createdAt ? new Date(m.createdAt).toLocaleString() : "recently"}
                       </p>
                     </div>

@@ -227,9 +227,13 @@ export interface CreateFarmResponse {
 export interface PostAuthor {
   id: string;
   username?: string;
+  displayName?: string;
   firstName?: string;
   lastName?: string;
   email?: string;
+  deleted?: boolean;
+  banned?: boolean;
+  status?: string;
 }
 
 export interface PostLike {

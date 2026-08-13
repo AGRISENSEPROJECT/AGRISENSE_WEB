@@ -21,11 +21,12 @@ const roleColor: Record<string, "green" | "amber" | "red" | "blue" | "gray" | "p
   ADMIN: "gray",
 };
 
-const statusColor: Record<string, "green" | "amber" | "red"> = {
+const statusColor: Record<string, "green" | "amber" | "red" | "gray"> = {
   ACTIVE: "green",
   PENDING: "amber",
-  SUSPENDED: "red",
+  SUSPENDED: "amber",
   BANNED: "red",
+  DELETED: "gray",
 };
 
 function getUserRows(data: unknown): AdminUserSummary[] {
@@ -49,7 +50,8 @@ function formatRole(role?: string) {
   return role.charAt(0) + role.slice(1).toLowerCase();
 }
 
-function formatStatus(status?: string) {
+function formatStatus(status?: string, deletedAt?: string | null) {
+  if (deletedAt) return "Deleted";
   if (!status) return "Unknown";
   return status.charAt(0) + status.slice(1).toLowerCase();
 }
@@ -257,8 +259,8 @@ const AdminDashboard = () => {
                       </Badge>
                     </td>
                     <td className="py-3">
-                      <Badge color={statusColor[u.status || ""] || "amber"}>
-                        {formatStatus(u.status)}
+                      <Badge color={statusColor[u.deletedAt ? "DELETED" : u.status || ""] || "amber"}>
+                        {formatStatus(u.status, u.deletedAt)}
                       </Badge>
                     </td>
                     <td className="py-3 text-gray-500">

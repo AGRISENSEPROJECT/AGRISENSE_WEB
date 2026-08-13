@@ -19,19 +19,26 @@ const roleColor: Record<string, "green" | "amber" | "red" | "blue" | "gray" | "p
   Admin: "gray",
 };
 
-const statusColor: Record<string, "green" | "amber" | "red"> = {
+const statusColor: Record<string, "green" | "amber" | "red" | "gray"> = {
   ACTIVE: "green",
   PENDING: "amber",
-  SUSPENDED: "red",
+  SUSPENDED: "amber",
   BANNED: "red",
+  DELETED: "gray",
   active: "green",
   pending: "amber",
-  suspended: "red",
+  suspended: "amber",
   banned: "red",
+  deleted: "gray",
 };
 
 const ROLES = ["ALL", "FARMER", "SUPPLIER", "NGO", "GOVERNMENT", "ADMIN"] as const;
-const STATUSES = ["ALL", "ACTIVE", "SUSPENDED", "BANNED", "PENDING"] as const;
+const STATUSES = ["ALL", "ACTIVE", "PENDING", "SUSPENDED", "BANNED", "DELETED"] as const;
+
+function accountStatusLabel(user: AdminUserSummary) {
+  if (user.deletedAt) return "DELETED";
+  return String(user.status || "UNKNOWN").toUpperCase();
+}
 
 function getUsers(data: unknown): AdminUserSummary[] {
   if (!data || typeof data !== "object") return [];
@@ -70,8 +77,9 @@ const AdminUsers = () => {
         page: nextPage,
         limit: PAGE_SIZE,
         role: role === "ALL" ? undefined : (role as AdminUserRole),
-        status: status === "ALL" ? undefined : status,
+        status: status === "ALL" || status === "DELETED" ? undefined : status,
         search: query.trim() || undefined,
+        includeDeleted: status === "DELETED",
       });
       const rows = getUsers(res);
       const meta = getPaginationMeta(res, nextPage, PAGE_SIZE, rows.length);
@@ -119,7 +127,7 @@ const AdminUsers = () => {
       roleLabel="Admin Console"
       accent={ADMIN_ACCENT}
       title="User Management"
-      subtitle="Search, filter and manage all platform accounts."
+      subtitle="Suspend pauses login but keeps community posts. Ban hides community presence. Delete removes them from the platform while keeping their email reserved."
     >
       {error && (
         <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -218,7 +226,8 @@ const AdminUsers = () => {
               ) : (
                 rows.map((u) => {
                   const protectedRow = isProtectedTarget(user?.id, u);
-                  const statusKey = String(u.status || "").toUpperCase();
+                  const statusKey = accountStatusLabel(u);
+                  const isDeleted = Boolean(u.deletedAt);
                   return (
                     <tr key={u.id} className="border-b last:border-0">
                       <td className="py-3 text-gray-700">
@@ -232,8 +241,8 @@ const AdminUsers = () => {
                         </Badge>
                       </td>
                       <td className="py-3">
-                        <Badge color={statusColor[u.status || ""] || "amber"}>
-                          {u.status || "Unknown"}
+                        <Badge color={statusColor[statusKey] || "amber"}>
+                          {statusKey}
                         </Badge>
                       </td>
                       <td className="py-3 text-gray-500">
@@ -244,92 +253,115 @@ const AdminUsers = () => {
                           <span className="text-xs text-gray-400">Protected</span>
                         ) : (
                           <div className="flex max-w-md flex-wrap gap-2">
-                            {statusKey === "SUSPENDED" || statusKey === "BANNED" ? (
+                            {isDeleted ? (
                               <button
                                 onClick={() =>
                                   runAction(
                                     u,
-                                    () => adminService.reactivateUser(u.id),
-                                    "User reactivated.",
+                                    () => adminService.restoreUser(u.id),
+                                    "User restored.",
                                   )
                                 }
                                 className="rounded-md border px-2 py-1 text-xs font-semibold"
                               >
-                                Reactivate
+                                Restore
                               </button>
                             ) : (
                               <>
+                                {statusKey === "SUSPENDED" || statusKey === "BANNED" ? (
+                                  <button
+                                    onClick={() =>
+                                      runAction(
+                                        u,
+                                        () => adminService.reactivateUser(u.id),
+                                        statusKey === "BANNED"
+                                          ? "User unbanned."
+                                          : "User reactivated.",
+                                      )
+                                    }
+                                    className="rounded-md border px-2 py-1 text-xs font-semibold"
+                                  >
+                                    {statusKey === "BANNED" ? "Unban" : "Reactivate"}
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() =>
+                                      runAction(
+                                        u,
+                                        () => adminService.suspendUser(u.id),
+                                        "User suspended. They cannot log in, but posts stay visible.",
+                                      )
+                                    }
+                                    className="rounded-md border px-2 py-1 text-xs font-semibold"
+                                  >
+                                    Suspend
+                                  </button>
+                                )}
+                                {statusKey !== "BANNED" ? (
+                                  <button
+                                    onClick={() =>
+                                      runAction(
+                                        u,
+                                        () => adminService.banUser(u.id),
+                                        "User banned. Community posts are now hidden.",
+                                      )
+                                    }
+                                    className="rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800"
+                                  >
+                                    Ban
+                                  </button>
+                                ) : null}
                                 <button
                                   onClick={() =>
                                     runAction(
                                       u,
-                                      () => adminService.suspendUser(u.id),
-                                      "User suspended.",
+                                      () => adminService.verifyUserEmail(u.id),
+                                      "Email verified.",
                                     )
                                   }
                                   className="rounded-md border px-2 py-1 text-xs font-semibold"
                                 >
-                                  Suspend
+                                  Verify email
                                 </button>
                                 <button
                                   onClick={() =>
-                                    runAction(u, () => adminService.banUser(u.id), "User banned.")
+                                    runAction(
+                                      u,
+                                      () => adminService.resetUserPassword(u.id),
+                                      "Password reset triggered.",
+                                    )
                                   }
-                                  className="rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800"
+                                  className="rounded-md border px-2 py-1 text-xs font-semibold"
                                 >
-                                  Ban
+                                  Reset password
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    runAction(u, () =>
+                                      adminService.updateUserRole(
+                                        u.id,
+                                        u.role === "SUPPLIER" ? "FARMER" : "SUPPLIER",
+                                      ),
+                                    )
+                                  }
+                                  className="rounded-md border px-2 py-1 text-xs font-semibold"
+                                >
+                                  Toggle role
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    runAction(
+                                      u,
+                                      () => adminService.softDeleteUser(u.id),
+                                      "User deleted. Email stays reserved so they cannot re-register.",
+                                    )
+                                  }
+                                  className="rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs font-semibold text-red-600"
+                                >
+                                  Delete
                                 </button>
                               </>
                             )}
-                            <button
-                              onClick={() =>
-                                runAction(
-                                  u,
-                                  () => adminService.verifyUserEmail(u.id),
-                                  "Email verified.",
-                                )
-                              }
-                              className="rounded-md border px-2 py-1 text-xs font-semibold"
-                            >
-                              Verify email
-                            </button>
-                            <button
-                              onClick={() =>
-                                runAction(
-                                  u,
-                                  () => adminService.resetUserPassword(u.id),
-                                  "Password reset triggered.",
-                                )
-                              }
-                              className="rounded-md border px-2 py-1 text-xs font-semibold"
-                            >
-                              Reset password
-                            </button>
-                            <button
-                              onClick={() =>
-                                runAction(u, () =>
-                                  adminService.updateUserRole(
-                                    u.id,
-                                    u.role === "SUPPLIER" ? "FARMER" : "SUPPLIER",
-                                  ),
-                                )
-                              }
-                              className="rounded-md border px-2 py-1 text-xs font-semibold"
-                            >
-                              Toggle role
-                            </button>
-                            <button
-                              onClick={() =>
-                                runAction(u, () =>
-                                  u.deletedAt
-                                    ? adminService.restoreUser(u.id)
-                                    : adminService.softDeleteUser(u.id),
-                                )
-                              }
-                              className="rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs font-semibold text-red-600"
-                            >
-                              {u.deletedAt ? "Restore" : "Delete"}
-                            </button>
                           </div>
                         )}
                       </td>
