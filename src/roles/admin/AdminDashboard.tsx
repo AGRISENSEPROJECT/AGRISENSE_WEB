@@ -10,7 +10,13 @@ import {
 import RoleLayout from "../RoleLayout";
 import { StatCard, Panel, Badge } from "../ui";
 import { ADMIN_ACCENT, adminLinks } from "./config";
-import { adminService, ApiError, type AdminFarmStatistics, type AdminUserSummary } from "@/api";
+import {
+  adminService,
+  ApiError,
+  type AdminFarmStatistics,
+  type AdminOverviewStatistics,
+  type AdminUserSummary,
+} from "@/api";
 import { getUserDisplayName } from "@/lib/user";
 
 const roleColor: Record<string, "green" | "amber" | "red" | "blue" | "gray" | "purple"> = {
@@ -60,6 +66,7 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState<AdminUserSummary[]>([]);
   const [usersTotal, setUsersTotal] = useState(0);
   const [farmStats, setFarmStats] = useState<AdminFarmStatistics | null>(null);
+  const [overview, setOverview] = useState<AdminOverviewStatistics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -74,22 +81,26 @@ const AdminDashboard = () => {
       setLoading(true);
       setError(null);
       try {
-        const [usersRes, farmStatsRes] = await Promise.all([
+        const [usersRes, farmStatsRes, overviewRes] = await Promise.all([
           adminService.getUsers({ page: 1, limit: 100 }),
           adminService.getFarmStatistics(),
+          adminService.getOverviewStatistics(),
         ]);
         if (!active) return;
 
         const rows = getUserRows(usersRes);
         setUsers(rows);
         setUsersTotal(
-          typeof usersRes.total === "number"
-            ? usersRes.total
-            : typeof usersRes.count === "number"
-              ? usersRes.count
-              : rows.length,
+          typeof overviewRes.totalUsers === "number"
+            ? overviewRes.totalUsers
+            : typeof usersRes.total === "number"
+              ? usersRes.total
+              : typeof usersRes.count === "number"
+                ? usersRes.count
+                : rows.length,
         );
         setFarmStats(farmStatsRes);
+        setOverview(overviewRes);
       } catch (err) {
         if (!active) return;
         setError(err instanceof ApiError ? err.message : "Failed to load admin dashboard.");
@@ -154,28 +165,31 @@ const AdminDashboard = () => {
         <StatCard
           icon={Users}
           label="Total Users"
-          value={usersTotal || users.length}
-          delta={`${summary.statusCounts.ACTIVE || 0} active`}
+          value={overview?.totalUsers ?? (usersTotal || users.length)}
+          delta={`${overview?.activeUsers ?? summary.statusCounts.ACTIVE ?? 0} active`}
           accent={ADMIN_ACCENT}
         />
         <StatCard
           icon={Store}
           label="Suppliers"
           value={summary.roleCounts.SUPPLIER || 0}
-          delta={`${summary.statusCounts.PENDING || 0} pending`}
+          delta={`${overview?.pendingSuppliers ?? summary.statusCounts.PENDING ?? 0} pending`}
           accent={ADMIN_ACCENT}
         />
         <StatCard
           icon={Building2}
           label="NGOs / Gov"
           value={(summary.roleCounts.NGO || 0) + (summary.roleCounts.GOVERNMENT || 0)}
-          delta={`${summary.roleCounts.ADMIN || 0} admins`}
+          delta={`${overview?.pendingNgos ?? 0} NGO pending · ${summary.roleCounts.ADMIN || 0} admins`}
           accent={ADMIN_ACCENT}
         />
         <StatCard
           icon={Sprout}
           label="Total Farms"
-          value={getNumberValue(farmStats, ["totalFarms", "count", "total"])}
+          value={
+            overview?.totalFarms ??
+            getNumberValue(farmStats, ["totalFarms", "count", "total"])
+          }
           delta={`${getNumberValue(farmStats, ["activeFarms"])} active`}
           accent={ADMIN_ACCENT}
         />
@@ -199,7 +213,7 @@ const AdminDashboard = () => {
             <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
               <p className="text-sm text-gray-500">Active Accounts</p>
               <p className="mt-2 text-2xl font-bold text-gray-900">
-                {summary.statusCounts.ACTIVE || 0}
+                {overview?.activeUsers ?? summary.statusCounts.ACTIVE ?? 0}
               </p>
             </div>
           </div>

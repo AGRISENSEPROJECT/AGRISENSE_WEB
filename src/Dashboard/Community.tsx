@@ -9,6 +9,9 @@ import {
 import { useAuth } from '@/context/useAuth';
 import { sanitizeText } from '@/lib/validation';
 import { getUserDisplayName } from '@/lib/user';
+import { Link } from 'react-router-dom';
+import { routes } from '@/lib/routes';
+import { MessageSquare } from 'lucide-react';
 
 const MAX_POST_LENGTH = 2000;
 const MAX_COMMENT_LENGTH = 500;
@@ -141,7 +144,15 @@ const Community = () => {
     <DashboardLayout>
 
         <div className="p-4 sm:p-6 max-w-3xl w-full mx-auto space-y-6">
-          <h1 className="text-2xl font-bold text-[#0B6E4F]">Community</h1>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h1 className="text-2xl font-bold text-[#0B6E4F]">Community</h1>
+            <Link
+              to={routes.app.messages}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#2C6E49] px-3 py-2 text-sm font-semibold text-[#2C6E49] hover:bg-[#2C6E49]/5"
+            >
+              <MessageSquare className="h-4 w-4" /> Messages
+            </Link>
+          </div>
 
           {error && (
             <div className="rounded-md bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">

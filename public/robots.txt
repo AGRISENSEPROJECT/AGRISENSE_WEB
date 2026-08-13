@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /admin
+Disallow: /supplier
+Disallow: /ngo
+Disallow: /auth
+Disallow: /testCharts
+Disallow: /dashboard
+Disallow: /signin
+Disallow: /signup
+
+Sitemap: https://agrisense.rw/sitemap.xml

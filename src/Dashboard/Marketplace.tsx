@@ -9,6 +9,8 @@ import {
   type Recommendation,
 } from "@/api";
 import { useFarms } from "@/hooks/useFarms";
+import { usePlanEntitlements } from "@/hooks/usePlanEntitlements";
+import { PlanUpgradeBanner } from "@/components/PlanUpgradeBanner";
 
 function getProducts(data: unknown): MarketplaceProduct[] {
   if (!data || typeof data !== "object") return [];
@@ -19,6 +21,7 @@ function getProducts(data: unknown): MarketplaceProduct[] {
 
 export default function Marketplace() {
   const { farms } = useFarms();
+  const entitlements = usePlanEntitlements();
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,13 +38,17 @@ export default function Marketplace() {
       setLoading(true);
       setError(null);
       try {
-        const [productsRes, recRes] = await Promise.all([
-          marketplaceService.getProducts({ page: 1, limit: 40, category: "SEEDS" }),
-          predictionService.getRecommendations({ limit: 20 }),
-        ]);
+        const productsRes = await marketplaceService.getProducts({ page: 1, limit: 40 });
         if (!active) return;
         setProducts(getProducts(productsRes));
-        setRecommendations((recRes.data || recRes.items || []) as Recommendation[]);
+
+        if (entitlements.marketInsights) {
+          const recRes = await predictionService.getRecommendations({ limit: 20 });
+          if (!active) return;
+          setRecommendations((recRes.data || recRes.items || []) as Recommendation[]);
+        } else {
+          setRecommendations([]);
+        }
       } catch (err) {
         if (!active) return;
         setError(err instanceof ApiError ? err.message : "Failed to load marketplace.");
@@ -52,7 +59,7 @@ export default function Marketplace() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [entitlements.marketInsights]);
 
   const firstFarm = farms[0];
   const recommendationIds = useMemo(
@@ -72,7 +79,8 @@ export default function Marketplace() {
     }
   };
 
-  const matchedEnabled = Boolean(firstFarm?.id && recommendationIds.length);
+  const matchedEnabled =
+    entitlements.marketInsights && Boolean(firstFarm?.id && recommendationIds.length);
 
   return (
     <DashboardLayout>
@@ -80,9 +88,18 @@ export default function Marketplace() {
         <div>
           <h1 className="text-2xl font-bold text-[#0B6E4F]">Marketplace</h1>
           <p className="text-sm text-gray-500">
-            Browse supplier products and order recommended items for your farms.
+            {entitlements.marketInsights
+              ? "Browse supplier products and order AI-matched items for your farms."
+              : "Browse supplier products on Starter. AI market insights unlock on Pro."}
           </p>
         </div>
+
+        {!entitlements.marketInsights && (
+          <PlanUpgradeBanner
+            title="AI market insights are on Pro"
+            description="Starter can browse and order products. Upgrade for AI-matched product recommendations."
+          />
+        )}
 
         {matchedEnabled && (
           <button

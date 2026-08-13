@@ -12,9 +12,11 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/useAuth';
 
-const SUPPORT_EMAIL = 'irasubizasalyneslon@gmail.com';
-const SUPPORT_PHONE = '+250 798 963 223';
-const SUPPORT_PHONE_TEL = '+250798963223';
+import { CONTACT } from '@/lib/contact';
+
+const SUPPORT_EMAIL = CONTACT.email;
+const SUPPORT_PHONE = CONTACT.phoneDisplay;
+const SUPPORT_PHONE_TEL = CONTACT.phoneTel;
 
 interface Faq {
   q: string;

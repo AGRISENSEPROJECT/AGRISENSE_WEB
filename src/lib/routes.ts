@@ -33,6 +33,7 @@ export const routes = {
     weather: "/app/weather",
     analytics: "/app/analytics",
     community: "/app/community",
+    messages: "/app/messages",
     help: "/app/help",
     settings: "/app/settings",
     subscription: "/app/subscription",
@@ -44,6 +45,7 @@ export const routes = {
     orders: "/supplier/orders",
     buyers: "/supplier/buyers",
     analytics: "/supplier/analytics",
+    notifications: "/supplier/notifications",
     settings: "/supplier/settings",
   },
 
@@ -52,8 +54,10 @@ export const routes = {
     users: "/admin/users",
     suppliers: "/admin/suppliers",
     waitlist: "/admin/waitlist",
+    billing: "/admin/billing",
     moderation: "/admin/moderation",
     analytics: "/admin/analytics",
+    notifications: "/admin/notifications",
     settings: "/admin/settings",
   },
 
@@ -61,8 +65,11 @@ export const routes = {
     root: "/ngo",
     programs: "/ngo/programs",
     regions: "/ngo/regions",
+    diseaseRisk: "/ngo/disease-risk",
+    advisories: "/ngo/advisories",
     farmers: "/ngo/farmers",
     reports: "/ngo/reports",
+    notifications: "/ngo/notifications",
     settings: "/ngo/settings",
   },
 } as const;

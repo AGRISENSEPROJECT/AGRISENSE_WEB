@@ -1,9 +1,11 @@
 import { useState, type ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/useAuth";
-import { Bell, Search, LogOut, Menu, X, type LucideIcon } from "lucide-react";
+import { Search, LogOut, Menu, X, type LucideIcon } from "lucide-react";
 import { UserAvatar } from "@/components/UserAvatar";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { getUserDisplayName } from "@/lib/user";
+import { getDefaultRouteForRole, routes } from "@/lib/routes";
 
 export interface RoleNavLink {
   title: string;
@@ -13,19 +15,27 @@ export interface RoleNavLink {
 }
 
 interface RoleLayoutProps {
-  /** Sidebar navigation links. */
   links: RoleNavLink[];
-  /** e.g. "Supplier Portal" — shown under the logo. */
   roleLabel: string;
-  /** Brand accent hex for this role, e.g. "#0F766E". */
   accent: string;
-  /** Page heading shown at the top of the content area. */
   title: string;
-  /** Optional subtitle under the page heading. */
   subtitle?: string;
-  /** Optional actions rendered on the right of the page header. */
   actions?: ReactNode;
   children: ReactNode;
+}
+
+function notificationsPathForRole(role?: string | null): string {
+  switch ((role || "").toUpperCase()) {
+    case "ADMIN":
+      return routes.admin.notifications;
+    case "SUPPLIER":
+      return routes.supplier.notifications;
+    case "NGO":
+    case "GOVERNMENT":
+      return routes.ngo.notifications;
+    default:
+      return routes.app.notifications;
+  }
 }
 
 const RoleLayout = ({
@@ -43,6 +53,7 @@ const RoleLayout = ({
 
   const displayName = getUserDisplayName(user);
   const displayEmail = user?.email || "";
+  const inboxHref = notificationsPathForRole(user?.role);
 
   const handleLogout = async () => {
     await logout();
@@ -51,9 +62,13 @@ const RoleLayout = ({
 
   const Sidebar = (
     <aside className="flex h-full w-64 flex-col border-r bg-white p-5">
-      {/* Brand */}
       <div className="mb-8 flex items-center gap-2">
-        <img src="/assets/logo.png" alt="AgriSense" className="h-11 w-auto" />
+        <img
+          src="/assets/logo.png"
+          alt="AgriSense"
+          className="h-11 w-auto cursor-pointer"
+          onClick={() => navigate(getDefaultRouteForRole(user?.role))}
+        />
         <div>
           <h1 className="text-lg font-bold leading-none">
             <span style={{ color: accent }}>AGRI</span>SENSE
@@ -67,7 +82,6 @@ const RoleLayout = ({
         </div>
       </div>
 
-      {/* Nav */}
       <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
         {links.map((link) => (
           <NavLink
@@ -98,23 +112,16 @@ const RoleLayout = ({
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Desktop sidebar */}
       <div className="hidden md:block">{Sidebar}</div>
 
-      {/* Mobile sidebar */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setMobileOpen(false)}
-          />
+          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
           <div className="absolute left-0 top-0 h-full">{Sidebar}</div>
         </div>
       )}
 
-      {/* Main */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Topbar */}
         <header className="flex items-center gap-4 border-b bg-white px-4 py-3 sm:px-6">
           <button
             className="md:hidden"
@@ -134,14 +141,8 @@ const RoleLayout = ({
             />
           </div>
 
-          <div className="ml-auto flex items-center gap-5">
-            <div className="relative">
-              <Bell className="h-5 w-5 text-gray-500" />
-              <span
-                className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full"
-                style={{ backgroundColor: accent }}
-              />
-            </div>
+          <div className="ml-auto flex items-center gap-3 sm:gap-4">
+            <NotificationBell inboxHref={inboxHref} accent={accent} />
             <div className="flex items-center gap-3 border-l pl-4">
               <UserAvatar
                 src={user?.profileImage}
@@ -157,7 +158,6 @@ const RoleLayout = ({
           </div>
         </header>
 
-        {/* Content */}
         <main className="flex-1 overflow-auto p-4 sm:p-6">
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>

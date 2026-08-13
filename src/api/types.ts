@@ -35,6 +35,8 @@ export interface AuthUser {
   status?: string;
   createdAt?: string;
   farm?: Farm | null;
+  /** Present when billing module is enabled (from auth/me / profile / tokens). */
+  subscription?: UserSubscriptionSummary | null;
 }
 
 export interface RegisterDto {
@@ -273,6 +275,105 @@ export interface CreateCommentDto {
 }
 
 // ---------------------------------------------------------------------------
+// Community chat (direct + group)
+// ---------------------------------------------------------------------------
+
+export type ConversationType = "direct" | "group";
+
+export interface ChatUserSummary {
+  id: string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  profileImage?: string | null;
+  [key: string]: unknown;
+}
+
+export interface ConversationMember {
+  id?: string;
+  userId?: string;
+  role?: string;
+  muted?: boolean;
+  lastReadAt?: string | null;
+  user?: ChatUserSummary;
+  [key: string]: unknown;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversationId?: string;
+  content: string;
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string | null;
+  senderId?: string;
+  sender?: ChatUserSummary;
+  author?: ChatUserSummary;
+  user?: ChatUserSummary;
+  [key: string]: unknown;
+}
+
+export interface Conversation {
+  id: string;
+  type?: ConversationType | string;
+  name?: string | null;
+  imageUrl?: string | null;
+  createdById?: string;
+  creatorId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  members?: ConversationMember[];
+  participants?: ChatUserSummary[];
+  lastMessage?: ChatMessage | null;
+  unreadCount?: number;
+  muted?: boolean;
+  [key: string]: unknown;
+}
+
+export interface CreateDirectConversationDto {
+  userId: string;
+}
+
+export interface CreateGroupConversationDto {
+  name: string;
+  memberIds: string[];
+}
+
+export interface UpdateGroupDto {
+  name: string;
+}
+
+export interface GroupMembersDto {
+  memberIds: string[];
+}
+
+export interface MuteConversationDto {
+  muted?: boolean;
+}
+
+export interface SendMessageDto {
+  content: string;
+}
+
+export interface ConversationsResponse {
+  conversations?: Conversation[];
+  items?: Conversation[];
+  data?: Conversation[];
+  [key: string]: unknown;
+}
+
+export interface ChatMessagesResponse {
+  messages?: ChatMessage[];
+  items?: ChatMessage[];
+  data?: ChatMessage[];
+  page?: number;
+  limit?: number;
+  total?: number;
+  [key: string]: unknown;
+}
+
+// ---------------------------------------------------------------------------
 // Predictions
 // ---------------------------------------------------------------------------
 
@@ -489,12 +590,24 @@ export interface BroadcastDto {
 // ---------------------------------------------------------------------------
 
 export interface JoinWaitlistDto {
+  fullName: string;
   email: string;
+  phoneNumber?: string;
+  interest?: "FARMER" | "SUPPLIER" | "NGO" | "GOVERNMENT" | "OTHER";
+  organization?: string;
+  province?: string;
+  message?: string;
+  source?: string;
 }
 
 export interface WaitlistEntry {
   id: string;
   email: string;
+  fullName?: string;
+  phoneNumber?: string;
+  interest?: string;
+  organization?: string;
+  province?: string;
   isActive?: boolean;
   status?: string;
   emailSentAt?: string | null;
@@ -524,6 +637,11 @@ export interface CreateOrgAccountDto {
   phoneNumber?: string;
   businessName?: string;
   organizationName?: string;
+  description?: string;
+  registrationNumber?: string;
+  website?: string;
+  assignedRegions?: string[];
+  focusAreas?: string[];
   autoApprove?: boolean;
 }
 
@@ -545,3 +663,302 @@ export interface AdminOverviewStatistics {
   reportedPosts?: number;
   [key: string]: unknown;
 }
+
+// ---------------------------------------------------------------------------
+// NGO / Government regional portal
+// ---------------------------------------------------------------------------
+
+export interface NgoProfile {
+  id?: string;
+  organizationName?: string;
+  description?: string;
+  registrationNumber?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  website?: string;
+  focusAreas?: string[];
+  assignedRegions?: string[];
+  status?: string;
+  isApproved?: boolean;
+  [key: string]: unknown;
+}
+
+export interface UpdateNgoProfileDto {
+  organizationName?: string;
+  description?: string;
+  registrationNumber?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  website?: string;
+  focusAreas?: string[];
+}
+
+export interface NgoProgram {
+  id: string;
+  title?: string;
+  name?: string;
+  description?: string;
+  targetRegions?: string[];
+  budget?: string | number;
+  startDate?: string;
+  endDate?: string;
+  isActive?: boolean;
+  status?: string;
+  farmersReached?: number;
+  progress?: number;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
+export interface CreateProgramDto {
+  title: string;
+  description?: string;
+  targetRegions?: string[];
+  budget?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface UpdateProgramDto {
+  title?: string;
+  description?: string;
+  isActive?: boolean;
+}
+
+export interface OrgStatistics {
+  totalFarmers?: number;
+  totalFarms?: number;
+  activeFarms?: number;
+  regionsCovered?: number;
+  activePrograms?: number;
+  averageFarmSize?: number;
+  cropsCultivated?: number;
+  diseaseAlerts?: number;
+  [key: string]: unknown;
+}
+
+export interface RegionalStatRow {
+  region?: string;
+  province?: string;
+  district?: string;
+  name?: string;
+  farms?: number;
+  totalFarms?: number;
+  farmers?: number;
+  totalFarmers?: number;
+  mainCrop?: string;
+  crop?: string;
+  diseaseRisk?: string;
+  harvestProgress?: number | string;
+  averageFarmSize?: number;
+  [key: string]: unknown;
+}
+
+export interface DiseaseTrendItem {
+  id?: string;
+  disease?: string;
+  diseaseName?: string;
+  crop?: string;
+  region?: string;
+  province?: string;
+  district?: string;
+  affectedFarms?: number;
+  percentage?: number;
+  severity?: string;
+  trend?: string;
+  confidence?: number;
+  recommendation?: string;
+  [key: string]: unknown;
+}
+
+export interface OrgFarmerSummary {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phoneNumber?: string;
+  province?: string;
+  district?: string;
+  farmsCount?: number;
+  [key: string]: unknown;
+}
+
+export interface OrgFarmSummary {
+  id: string;
+  name?: string;
+  farmName?: string;
+  province?: string;
+  district?: string;
+  cropType?: string;
+  crop?: string;
+  size?: number;
+  sizeHa?: number;
+  status?: string;
+  [key: string]: unknown;
+}
+
+export interface GovernmentAdvisory {
+  id: string;
+  title?: string;
+  content?: string;
+  type?: "GENERAL" | "WEATHER" | "DISEASE" | "EMERGENCY" | "FOOD_SECURITY" | string;
+  targetRegions?: string[];
+  isPublished?: boolean;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
+export interface CreateAdvisoryDto {
+  title: string;
+  content: string;
+  type: "GENERAL" | "WEATHER" | "DISEASE" | "EMERGENCY" | "FOOD_SECURITY";
+  targetRegions?: string[];
+}
+
+export interface UpdateAdvisoryDto {
+  title?: string;
+  content?: string;
+  isPublished?: boolean;
+}
+
+export interface SendOrgNotificationDto {
+  title?: string;
+  message?: string;
+  content?: string;
+  targetRegions?: string[];
+  crop?: string;
+  [key: string]: unknown;
+}
+
+export const RWANDA_PROVINCES = [
+  "Northern Province",
+  "Southern Province",
+  "Eastern Province",
+  "Western Province",
+  "Kigali City",
+] as const;
+
+// ---------------------------------------------------------------------------
+// Billing / Subscriptions
+// ---------------------------------------------------------------------------
+
+export type BillingPlanId = "starter" | "pro" | "enterprise";
+export type BillingCycle = "monthly" | "annual";
+export type BillingPaymentMethod = "momo" | "airtel" | "card" | "manual" | "none";
+export type SubscriptionStatus =
+  | "active"
+  | "trialing"
+  | "past_due"
+  | "canceled"
+  | "pending_payment"
+  | "expired";
+
+export interface PlanLimits {
+  maxFarms?: number | null;
+  weatherDays?: number | null;
+  aiRecommendations?: boolean;
+  marketInsights?: boolean;
+  prioritySupport?: boolean;
+  unlimitedSoilReports?: boolean;
+  [key: string]: unknown;
+}
+
+/** Compact subscription attached to auth profile / tokens. */
+export interface UserSubscriptionSummary {
+  planId?: BillingPlanId | string;
+  status?: SubscriptionStatus | string;
+  billingCycle?: BillingCycle | null;
+  limits?: PlanLimits;
+  currentPeriodEnd?: string | null;
+  cancelAtPeriodEnd?: boolean;
+  [key: string]: unknown;
+}
+
+export interface BillingPlan {
+  id: BillingPlanId | string;
+  name?: string;
+  title?: string;
+  description?: string;
+  features?: string[];
+  /** Preferred backend field names */
+  priceMonthly?: number | null;
+  priceAnnualPerMonth?: number | null;
+  /** Aliases some responses may use */
+  monthly?: number | null;
+  annualPerMonth?: number | null;
+  limits?: PlanLimits;
+  isPublic?: boolean;
+  popular?: boolean;
+  [key: string]: unknown;
+}
+
+export interface UserSubscription {
+  id?: string;
+  planId: BillingPlanId | string;
+  billingCycle?: BillingCycle | null;
+  status: SubscriptionStatus | string;
+  paymentMethod?: BillingPaymentMethod | string;
+  paymentLabel?: string;
+  label?: string;
+  amount?: number;
+  currency?: string;
+  currentPeriodStart?: string | null;
+  currentPeriodEnd?: string | null;
+  cancelAtPeriodEnd?: boolean;
+  canceledAt?: string | null;
+  limits?: PlanLimits;
+  updatedAt?: string;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
+export interface CheckoutDto {
+  planId: "pro";
+  billingCycle: BillingCycle;
+  method: "momo" | "airtel" | "card";
+  phone?: string;
+  returnUrl?: string;
+  cancelUrl?: string;
+}
+
+export interface CheckoutPaymentInfo {
+  provider?: string;
+  mode?: string;
+  redirectUrl?: string;
+  message?: string;
+  providerRef?: string;
+  [key: string]: unknown;
+}
+
+export interface CheckoutResponse {
+  checkoutId: string;
+  status?: SubscriptionStatus | string;
+  providerRef?: string;
+  payment?: CheckoutPaymentInfo;
+  subscription?: UserSubscription;
+  [key: string]: unknown;
+}
+
+export interface CancelSubscriptionDto {
+  atPeriodEnd?: boolean;
+}
+
+export interface EnterpriseInquiryDto {
+  organizationName: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone?: string;
+  message: string;
+}
+
+export interface AdminAssignSubscriptionDto {
+  planId: BillingPlanId;
+  periodDays?: number;
+  note?: string;
+  billingCycle?: BillingCycle;
+}
+
+export interface AdminRevokeSubscriptionDto {
+  note?: string;
+}
+

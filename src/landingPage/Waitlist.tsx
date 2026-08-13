@@ -10,24 +10,43 @@ const PERKS = [
 ];
 
 const Waitlist = () => {
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setNameError(null);
+    setEmailError(null);
+
+    const trimmedName = fullName.trim();
+    if (!trimmedName) {
+      setNameError("Enter your full name.");
+      return;
+    }
+    if (trimmedName.length > 120) {
+      setNameError("Name must be 120 characters or fewer.");
+      return;
+    }
 
     const check = validateEmail(email);
     if (!check.valid) {
-      setError(check.message || "Enter a valid email.");
+      setEmailError(check.message || "Enter a valid email.");
       return;
     }
 
     setLoading(true);
     try {
-      await waitlistService.join({ email: email.trim().toLowerCase() });
+      await waitlistService.join({
+        fullName: trimmedName,
+        email: email.trim().toLowerCase(),
+        source: "landing-page",
+      });
       setSubmitted(true);
     } catch (err) {
       setError(
@@ -39,6 +58,13 @@ const Waitlist = () => {
       setLoading(false);
     }
   };
+
+  const inputClass = (hasError: boolean) =>
+    `w-full h-12 rounded-xl border bg-gray-50/60 px-4 outline-none transition-all focus:bg-white focus:ring-2 disabled:opacity-60 ${
+      hasError
+        ? "border-red-400 focus:border-red-400 focus:ring-red-100"
+        : "border-gray-200 focus:border-[#2C6E49] focus:ring-green-100"
+    }`;
 
   return (
     <section id="waitlist" className="px-4 sm:px-6 md:px-12 lg:px-20 py-16">
@@ -80,7 +106,7 @@ const Waitlist = () => {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">You&apos;re on the list</h3>
                 <p className="text-gray-500 mt-2">
-                  Check{" "}
+                  Thanks{fullName.trim() ? `, ${fullName.trim().split(" ")[0]}` : ""}. Check{" "}
                   <span className="font-semibold text-gray-700">{email}</span> for your
                   AgriSense welcome email.
                 </p>
@@ -93,18 +119,31 @@ const Waitlist = () => {
                 </p>
 
                 <form onSubmit={handleSubmit} className="mt-5 space-y-3" noValidate>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    disabled={loading}
-                    className={`w-full h-12 rounded-xl border bg-gray-50/60 px-4 outline-none transition-all focus:bg-white focus:ring-2 disabled:opacity-60 ${
-                      error
-                        ? "border-red-400 focus:border-red-400 focus:ring-red-100"
-                        : "border-gray-200 focus:border-[#2C6E49] focus:ring-green-100"
-                    }`}
-                  />
+                  <div>
+                    <input
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Full name"
+                      maxLength={120}
+                      disabled={loading}
+                      autoComplete="name"
+                      className={inputClass(!!nameError)}
+                    />
+                    {nameError && <p className="mt-1 text-xs text-red-600">{nameError}</p>}
+                  </div>
+                  <div>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      disabled={loading}
+                      autoComplete="email"
+                      className={inputClass(!!emailError || !!error)}
+                    />
+                    {emailError && <p className="mt-1 text-xs text-red-600">{emailError}</p>}
+                  </div>
                   {error && <p className="text-xs text-red-600">{error}</p>}
                   <button
                     type="submit"

@@ -21,11 +21,14 @@ import {
   type Recommendation,
 } from '@/api';
 import { useFarms } from '@/hooks/useFarms';
+import { usePlanEntitlements } from '@/hooks/usePlanEntitlements';
+import { PlanFeatureGate } from '@/components/PlanUpgradeBanner';
 
 const COLORS = ['#2D6A4F', '#4D8D6E', '#95D5B2', '#B7E4C7', '#40916C', '#74C69D'];
 
 const Analytics = () => {
   const { farms } = useFarms();
+  const entitlements = usePlanEntitlements();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +38,10 @@ const Analytics = () => {
   }, []);
 
   useEffect(() => {
+    if (!entitlements.features.has('analytics')) {
+      setLoading(false);
+      return;
+    }
     let active = true;
     setLoading(true);
     Promise.allSettled([
@@ -55,7 +62,19 @@ const Analytics = () => {
     return () => {
       active = false;
     };
-  }, []);
+  }, [entitlements.features]);
+
+  if (!entitlements.loading && !entitlements.features.has('analytics')) {
+    return (
+      <DashboardLayout>
+        <PlanFeatureGate
+          planId={entitlements.planId}
+          title="Analytics is a Pro feature"
+          description="Deeper farm analytics, recommendation charts, and insight dashboards unlock on Pro."
+        />
+      </DashboardLayout>
+    );
+  }
 
   const totalAcreage = farms.reduce((s, f) => s + (Number(f.size) || 0), 0);
 

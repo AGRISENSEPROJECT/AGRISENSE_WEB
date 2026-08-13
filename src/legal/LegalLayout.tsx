@@ -17,7 +17,6 @@ interface LegalLayoutProps {
 
 const LegalLayout = ({ title, lastUpdated, intro, sections, children }: LegalLayoutProps) => {
   useEffect(() => {
-    document.title = `${title} | AGRISENSE`;
     window.scrollTo(0, 0);
   }, [title]);
 
@@ -79,10 +78,10 @@ const LegalLayout = ({ title, lastUpdated, intro, sections, children }: LegalLay
           <div className="mt-10 border-t pt-6 text-sm text-gray-500">
             Questions? Contact us at{" "}
             <a
-              href="mailto:irasubizasalyneslon@gmail.com"
+              href="mailto:agrisense8@gmail.com"
               className="font-medium text-[#2C6E49] hover:underline"
             >
-              irasubizasalyneslon@gmail.com
+              agrisense8@gmail.com
             </a>
             .
           </div>

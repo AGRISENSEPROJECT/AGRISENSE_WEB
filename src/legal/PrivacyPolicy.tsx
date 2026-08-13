@@ -169,10 +169,10 @@ const PrivacyPolicy = () => {
         <p>
           For privacy questions or requests, contact us at{" "}
           <a
-            href="mailto:irasubizasalyneslon@gmail.com"
+            href="mailto:agrisense8@gmail.com"
             className="font-medium text-[#2C6E49] hover:underline"
           >
-            irasubizasalyneslon@gmail.com
+            agrisense8@gmail.com
           </a>{" "}
           or by post at Nyabihu, Rwanda.
         </p>

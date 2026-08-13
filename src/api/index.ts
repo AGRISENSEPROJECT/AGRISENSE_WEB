@@ -15,3 +15,13 @@ export { marketplaceService } from "./services/marketplace";
 export { notificationService } from "./services/notifications";
 export { communityService } from "./services/community";
 export { predictionService } from "./services/predictions";
+export { ngoService } from "./services/ngo";
+export { governmentService } from "./services/government";
+export { billingService } from "./services/billing";
+export {
+  chatService,
+  unwrapConversations,
+  unwrapMessages,
+  unwrapUsers,
+  unwrapConversation,
+} from "./services/chat";
